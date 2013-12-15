@@ -1,6 +1,7 @@
 #include "game.h"
 #include "shader.h"
 #include "transform.h"
+#include "cube.h"
 
 State game_state = PlayState;
 
@@ -12,6 +13,10 @@ mat4
 	mat_perspective,
 	mat_model,
 	mat_view;
+
+Mesh 
+	grid,
+	cube;
 
 void on_key(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -41,15 +46,20 @@ bool load_game(GLFWwindow *window)
 	glfwGetFramebufferSize(window, &width, &height);
 	ratio = width / (float) height;
 
-	mat_perspective = glm::perspective(45.0f, ratio, 0.5f, 5.0f);
+	mat_perspective = glm::perspective(45.0f, ratio, 0.5f, 8.0f);
 	mat_view = mat4(1.0f);
 	mat_model = mat4(1.0f);
+
+	grid = generate_grid(8, 1.0f, 1.0f, 1.0f, 1.0f);
+	cube = generate_color_cube(1.0f, 1.0f, 0.23f, 0.21f);
 
 	return true;
 }
 
 void unload_game()
 {
+	delete_mesh(grid);
+	delete_mesh(cube);
 	default_shader.dispose();
 	diffuse_shader.dispose();
 }
@@ -62,7 +72,7 @@ void update_menu(GLFWwindow *window, double dt)
 void update_play(GLFWwindow *window, double dt)
 {
 	float time = (float) glfwGetTime();
-	mat_view = translate(0.0f, 0.0f, -3.0f) * rotate_y(time);
+	mat_view = translate(0.0f, 0.0f, -3.0f) * rotate_x(-0.35f) * rotate_y(time);
 }
 
 void render_menu()
@@ -114,35 +124,15 @@ void render_play()
 	default_shader.use();
 
 	default_shader.set_uniform("projection", mat_perspective);
-	default_shader.set_uniform("model", mat_model);
 	default_shader.set_uniform("view", mat_view);
 
-	float vertices[] = {
-		-0.5f, -0.5f, 0.0f,		0.95f, 0.22f, 0.18f, 1.0f,
-		+0.5f, -0.5f, 0.0f,		0.95f, 0.22f, 0.18f, 1.0f,
-		+0.5f, +0.5f, 0.0f,		0.95f, 0.22f, 0.18f, 1.0f,
-		-0.5f, +0.5f, 0.0f,		0.95f, 0.22f, 0.18f, 1.0f
-	};
+	mat_model = scale(1.0f);
+	default_shader.set_uniform("model", mat_model);
+	render_pos_col(GL_LINES, default_shader, grid);
 
-	uint32 indices[] = { 0, 1, 2, 2, 3, 0 };
-
-	GLuint vbo = gen_buffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices);
-	GLuint ibo = gen_buffer(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	default_shader.set_attribfv("position", 3, 7, 0);
-	default_shader.set_attribfv("color", 4, 7, 3);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	default_shader.unset_attrib("position");
-	default_shader.unset_attrib("color");
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glDeleteBuffers(1, &vbo);
-	glDeleteBuffers(1, &ibo);
+	mat_model = scale(0.2f);
+	default_shader.set_uniform("model", mat_model);
+	render_pos_col(GL_TRIANGLES, default_shader, cube);
 
 	default_shader.unuse();
 }
