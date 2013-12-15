@@ -7,6 +7,7 @@
 void error_callback(int error, const char* description)
 {
     fputs(description, stderr);
+	std::cin.get();
 }
 
 int main(int argc, char **argv)
@@ -16,6 +17,12 @@ int main(int argc, char **argv)
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
+	glfwWindowHint(GLFW_OPENGL_PROFILE, 0); // 0 = auto
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
     window = glfwCreateWindow(640, 480, "Spherical Snake", NULL, NULL);
     if (!window)
     {
@@ -24,9 +31,9 @@ int main(int argc, char **argv)
     }
 
     glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, key_callback);
+    glfwSetKeyCallback(window, on_key);
 	glfwSwapInterval(VSYNC);
-	glfwSetInputMode(window, GLFW_CURSOR, CURSOR_MODE);
+	//glfwSetInputMode(window, GLFW_CURSOR, CURSOR_MODE);
 
 	if(LoadFunctions() == LS_LOAD_FAILED)
 	{
@@ -35,42 +42,61 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-    if(!load_game())
-    {
-        fputs("Failed to load content", stderr);
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
+	try
+	{
+		if(!load_game(window))
+		{
+			fputs("Failed to load content", stderr);
+			glfwTerminate();
+			exit(EXIT_FAILURE);
+		}
 
-    int updates_per_sec = 25;
-    double secs_per_update = 1.0 / double(updates_per_sec);
-    double accumulator = 0.0;
-    double dt = 0.0;
-    double prev_now = 0.0;
-    while (!glfwWindowShouldClose(window))
-    {
-        double now = glfwGetTime();
-        double dt = now - prev_now;
-        prev_now = now;
+		float ratio;
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+		ratio = width / (float) height;
+		glViewport(0, 0, width, height);
 
-        accumulator += dt;
-        while(accumulator >= secs_per_update)
-        {
-            update_game(secs_per_update);
-            accumulator -= secs_per_update;
-        }
+		int updates_per_sec = 60;
+		double secs_per_update = 1.0 / double(updates_per_sec);
+		double accumulator = 0.0;
+		double dt = 0.0;
+		double prev_now = 0.0;
+		while (!glfwWindowShouldClose(window))
+		{
+			double now = glfwGetTime();
+			double dt = now - prev_now;
+			prev_now = now;
 
-        float ratio;
-        int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
-        ratio = width / (float) height;
-        glViewport(0, 0, width, height);
+			accumulator += dt;
+			while (accumulator >= secs_per_update)
+			{
+				update_game(window, secs_per_update);
+				accumulator -= secs_per_update;
+			}
 
-        render_game();
+			now = glfwGetTime();
+			render_game();
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
+			glfwSwapBuffers(window);
+			glfwPollEvents();
+			double render_time = glfwGetTime() - now;
+
+			/*if (render_time < target_frame_time)
+				glfwSleep*/
+
+			if (check_gl_errors(std::cerr))
+			{
+				std::cin.get();
+				glfwSetWindowShouldClose(window, GL_TRUE);
+			}
+		}
+	}
+	catch (std::exception &e)
+	{
+		std::cerr<<"An error occured: "<<e.what()<<std::endl;
+		std::cin.get();
+	}
     
     glfwDestroyWindow(window);
     glfwTerminate();
