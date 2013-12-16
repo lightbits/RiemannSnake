@@ -2,21 +2,31 @@
 #include "shader.h"
 #include "transform.h"
 #include "cube.h"
+#include "font.h"
+#include <iostream>
+
+Performance perf;
 
 State game_state = PlayState;
 
 Shader 
 	default_shader,
-	diffuse_shader;
+	diffuse_shader,
+	sprite_shader;
 
 mat4 
 	mat_perspective,
+	mat_orthographic,
 	mat_model,
 	mat_view;
 
 Mesh 
 	grid,
 	cube;
+
+Font 
+	debug_font,
+	game_font;
 
 void on_key(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -39,14 +49,19 @@ void on_key(GLFWwindow* window, int key, int scancode, int action, int mods)
 bool load_game(GLFWwindow *window)
 {
 	default_shader.load("shaders/default.vs", "shaders/default.fs");
-	//diffuse_shader.load("shaders/diffuse.vs", "shaders/diffuse.fs");
+	sprite_shader.load("shaders/sprite.vs", "shaders/sprite.fs");
+
+	if (!load_font(debug_font, "textures/proggytinyttsz_8x12.png") ||
+		!load_font(game_font, "textures/segoe_script_36x53.png"))
+		return false;
 
 	float ratio;
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
-	ratio = width / (float) height;
+	ratio = width / float(height);
 
 	mat_perspective = glm::perspective(45.0f, ratio, 0.5f, 8.0f);
+	mat_orthographic = glm::ortho(0.0f, float(width), float(height), 0.0f);
 	mat_view = mat4(1.0f);
 	mat_model = mat4(1.0f);
 
@@ -60,8 +75,11 @@ void unload_game()
 {
 	delete_mesh(grid);
 	delete_mesh(cube);
+	delete_font(debug_font);
+	delete_font(game_font);
 	default_shader.dispose();
 	diffuse_shader.dispose();
+	sprite_shader.dispose();
 }
 
 void update_menu(GLFWwindow *window, double dt)
@@ -118,7 +136,9 @@ void render_menu()
 
 void render_play()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	double time = glfwGetTime();
+
+	glClearColor(0.13f, 0.13f, 0.13f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	default_shader.use();
@@ -135,6 +155,23 @@ void render_play()
 	render_pos_col(GL_TRIANGLES, default_shader, cube);
 
 	default_shader.unuse();
+
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+	sprite_shader.use();
+	sprite_shader.set_uniform("projection", mat_orthographic);
+	sprite_shader.set_uniform("view", mat4(1.0f));
+
+	string perf_str;
+	perf_str += "update: " + std::to_string(int(perf.update_time * 1000.0)) + "ms\n";
+	perf_str += "render: " + std::to_string(int(perf.render_time * 1000.0)) + "ms";
+
+	draw_string(debug_font, sprite_shader, 5.0f, 5.0f, perf_str);
+	sprite_shader.unuse();
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
 }
 
 void update_game(GLFWwindow *window, double dt)
