@@ -108,6 +108,27 @@ bool load_font(Font &font, const string &path)
 	return true;
 }
 
+vec2i measure_string(const Font &font, const string &text)
+{
+	int height = font.char_height;
+	int width = 0;
+	int curr_width = 0;
+
+	for (const char &c : text) {
+		Glyph glyph = font.glyphs.find(c)->second;
+		if (c == '\n')
+		{
+			height += font.char_height;
+			curr_width = 0;
+		}
+		curr_width += glyph.width;
+		if (curr_width > width)
+			width = curr_width;
+	}
+
+	return vec2i(width, height);
+}
+
 void draw_string(const Font &font, Shader &shader, float x, float y, float r, float g, float b, float a, const string &text)
 {
 	std::vector<float> v_buffer;

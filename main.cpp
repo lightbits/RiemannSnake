@@ -57,6 +57,8 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 
+		init_game(window);
+
 		float ratio;
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);

@@ -14,6 +14,7 @@ struct Performance
 // Global performance info
 extern Performance perf;
 
+void init_game(GLFWwindow *window);
 bool load_game(GLFWwindow *window);
 void on_key(GLFWwindow *window, int key, int scancode, int action, int mods);
 void update_game(GLFWwindow *window, double dt);
