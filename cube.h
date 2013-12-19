@@ -11,11 +11,12 @@ struct Mesh
 
 void delete_mesh(Mesh &mesh);
 
-Mesh generate_color_cube(float size, float r, float g, float b);
-//Mesh generate_tex_cube(float size, float r, float g, float b);
+Mesh generate_color_cube(float size, 
+						 const vec3 &color);
 
-Mesh generate_grid(int lines, float size, 
-				   float r, float g, float b);
+Mesh generate_grid(int lines, 
+				   float size, 
+				   const vec3 &color);
 
 // Renders indexed meshes of layout
 // x y z r g b a, x y z r g b a, ...

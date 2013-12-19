@@ -2,13 +2,11 @@
 #include "game.h"
 #include "timer.h"
 #include <iostream>
-#define CURSOR_MODE GLFW_CURSOR_DISABLED
 #define VSYNC 1
 #define FSAA_SAMPLES 4
 #define GL_VERSION_MAJOR 3
 #define GL_VERSION_MINOR 1
-#define GL_PROFILE 0 // 0 is auto
-#define RESIZABLE_WINDOW GL_FALSE
+#define GL_PROFILE 0 // Auto
 
 void error_callback(int error, const char* description)
 {
@@ -27,7 +25,7 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, GL_VERSION_MAJOR);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GL_VERSION_MINOR);
 	glfwWindowHint(GLFW_SAMPLES, FSAA_SAMPLES);
-	glfwWindowHint(GLFW_RESIZABLE, RESIZABLE_WINDOW);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
     window = glfwCreateWindow(640, 480, "Spherical Snake", NULL, NULL);
     if (!window)
@@ -39,7 +37,7 @@ int main(int argc, char **argv)
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, on_key);
 	glfwSwapInterval(VSYNC);
-	//glfwSetInputMode(window, GLFW_CURSOR, CURSOR_MODE);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
 	if(LoadFunctions() == LS_LOAD_FAILED)
 	{
@@ -53,6 +51,7 @@ int main(int argc, char **argv)
 		if(!load_game(window))
 		{
 			fputs("Failed to load content", stderr);
+			std::cin.get();
 			glfwTerminate();
 			exit(EXIT_FAILURE);
 		}
@@ -87,7 +86,7 @@ int main(int argc, char **argv)
 			double update_time = glfwGetTime() - now;
 			now = glfwGetTime();
 
-			render_game();
+			render_game(window, dt);
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 
@@ -100,10 +99,6 @@ int main(int argc, char **argv)
 				std::cin.get();
 				glfwSetWindowShouldClose(window, GL_TRUE);
 			}
-
-			// Update global performance info
-			perf.render_time = render_time;
-			perf.update_time = update_time;
 		}
 	}
 	catch (std::exception &e)

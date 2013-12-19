@@ -8,10 +8,14 @@ void delete_mesh(Mesh &mesh)
 	glDeleteBuffers(1, &mesh.ibo);
 }
 
-Mesh generate_color_cube(float size, float r, float g, float b)
+Mesh generate_color_cube(float size, 
+						 const vec3 &color)
 {
 	Mesh mesh;
 	float hs = size / 2.0f;
+	float r = color.x;
+	float g = color.g;
+	float b = color.b;
 
 	float vertices[] = {
 		// Front
@@ -66,8 +70,9 @@ Mesh generate_color_cube(float size, float r, float g, float b)
 	return mesh;
 }
 
-Mesh generate_grid(int lines, float size, 
-				   float r, float g, float b)
+Mesh generate_grid(int lines, 
+				   float size, 
+				   const vec3 &color)
 {
 	Mesh mesh;
 	std::vector<float> vertex_buffer;
@@ -79,11 +84,11 @@ Mesh generate_grid(int lines, float size,
 		float f = (i / float(lines)) * 2.0f - 1.0f;
 		f *= hs;
 		float vertices[] = {
-			-hs, 0.0f, f, r, g, b, 1.0f,
-			+hs, 0.0f, f, r, g, b, 1.0f,
+			-hs, 0.0f, f, color.x, color.y, color.z, 1.0f,
+			+hs, 0.0f, f, color.x, color.y, color.z, 1.0f,
 
-			f, 0.0f, +hs, r, g, b, 1.0f,
-			f, 0.0f, -hs, r, g, b, 1.0f
+			f, 0.0f, +hs, color.x, color.y, color.z, 1.0f,
+			f, 0.0f, -hs, color.x, color.y, color.z, 1.0f
 		};
 		vertex_buffer.insert(vertex_buffer.end(), vertices, vertices + 28);
 

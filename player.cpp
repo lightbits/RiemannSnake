@@ -1,72 +1,115 @@
 #include "player.h"
+#include "cube.h"
+#include "transform.h"
 
-//void init_player()
-//{
-//	PlayerBlock block0;
-//	block0.pos_x = 0;
-//	block0.pos_y = 0;
-//	block0.vel_x = 0;
-//	block0.vel_y = 0;
-//
-//	player.blocks.push_back(block0);
-//
-//	player.pos_x = 0;
-//	player.pos_y = 0;
-//	player.vel_x = 0;
-//	player.vel_y = 0;
-//
-//	cube = generate_color_cube(1.0f, 1.0f, 0.23f, 0.21f);
-//}
-//
-//void set_player_velocity(int x, int y) 
-//{
-//	player.vel_x = x; player.vel_y = y; 
-//}
-//
-//void set_player_position(int x, int y)
-//{
-//	if (x < 0) x = LEVEL_SIZE - 1;
-//	if (x >= LEVEL_SIZE) x = 0;
-//	if (y < 0) y = LEVEL_SIZE - 1;
-//	if (y >= LEVEL_SIZE) y = 0;
-//	player.pos_x = x;
-//	player.pos_y = y;
-//}
-//
-//void update_player(GLFWwindow *window, double dt)
-//{
-//	if (glfwGetKey(window, GLFW_KEY_LEFT))
-//		set_player_velocity(-1, 0);
-//	else if (glfwGetKey(window, GLFW_KEY_RIGHT))
-//		set_player_velocity(1, 0);
-//
-//	if (glfwGetKey(window, GLFW_KEY_UP))
-//		set_player_velocity(0, -1);
-//	else if (glfwGetKey(window, GLFW_KEY_DOWN))
-//		set_player_velocity(0, 1);
-//}
-//
-//void update_player_position()
-//{
-//	set_player_position(player.pos_x + player.vel_x, player.pos_y + player.vel_y);
-//}
-//
-//void render_player()
-//{
-//	vec2 world_pos = level_to_world(player.pos_x, player.pos_y);
-//	mat4 transform = 
-//		translate(world_pos.x, CELL_SIZE / 2.0f, world_pos.y) *
-//		scale(CELL_SIZE);
-//	default_shader.set_uniform("model", transform);
-//	render_pos_col(GL_TRIANGLES, default_shader, cube);
-//}
-//
-//void update_player(GLFWwindow *window, double dt, const Level &level)
-//{
-//
-//}
-//
-//void render_player(GLFWwindow *window)
-//{
-//
-//}
+struct PlayerBlock
+{
+	Mesh mesh_cube;
+	vec2i old_pos;
+	vec2i pos;
+	vec2i old_vel;
+	vec2i vel;
+};
+
+struct Player
+{
+	std::vector<PlayerBlock> blocks;
+	vec2i pos;
+	vec2i vel;
+};
+
+Player player;
+
+PlayerBlock create_block(float size,
+						 const vec2i &p0, 
+						 const vec2i &v0, 
+						 const vec3 &color)
+{
+	PlayerBlock block;
+	block.mesh_cube = generate_color_cube(size, color);
+	block.old_pos = p0;
+	block.old_vel = v0;
+	block.pos = p0;
+	block.vel = v0;
+	return block;
+}
+
+bool load_player(GLFWwindow *window)
+{
+	return true;
+}
+
+void init_player(GLFWwindow *window, 
+				 int start_length, 
+				 const vec3 &head_color, 
+				 const vec3 &body_color)
+{
+	player.pos = vec2i(0, 0);
+	player.vel = vec2i(0, 0);
+
+	player.blocks.push_back(create_block(
+		1.0f,
+		player.pos,
+		player.vel, 
+		head_color));
+
+	for (int i = 1; i < start_length; ++i)
+		player.blocks.push_back(create_block(
+		1.0f,
+		player.blocks[i - 1].pos + vec2i(0, 1),
+		player.blocks[i - 1].vel, body_color));
+}
+
+void free_player(GLFWwindow *window)
+{
+	for (PlayerBlock &block : player.blocks)
+		delete_mesh(block.mesh_cube);
+}
+
+void handle_player_input(GLFWwindow *window, double dt)
+{
+	if (glfwGetKey(window, GLFW_KEY_LEFT))
+		player.vel = vec2i(-1, 0);
+	else if (glfwGetKey(window, GLFW_KEY_RIGHT))
+		player.vel = vec2i(+1, 0);
+
+	if (glfwGetKey(window, GLFW_KEY_UP))
+		player.vel = vec2i(0, -1);
+	else if (glfwGetKey(window, GLFW_KEY_DOWN))
+		player.vel = vec2i(0, +1);
+}
+
+void update_player(GLFWwindow *window, double dt)
+{
+
+}
+
+void render_player(GLFWwindow *window, double dt)
+{
+	Shader *shader = get_active_shader();
+
+	for (auto &block : player.blocks) 
+	{
+		vec2 world_pos = level_to_world_pos(block.pos);
+		mat4 transform = 
+			translate(world_pos.x, level_get_cell_size() / 2.0f, world_pos.y) *
+			scale(level_get_cell_size());
+		shader->set_uniform("model", transform);
+		render_pos_col(GL_TRIANGLES, *shader, block.mesh_cube);
+	}
+}
+
+vec2i player_get_pos()
+{
+	return player.pos;
+}
+
+vec2i player_get_vel()
+{
+	return player.vel;
+}
+
+int player_get_length()
+{
+	return player.blocks.size();
+}

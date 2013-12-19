@@ -1,35 +1,26 @@
 #ifndef LEVEL_H
 #define LEVEL_H
+#include "util.h"
 #include "types.h"
 #include <vector>
 
-enum WorldTiles { TileBlank = 0, TileObstacle = 1, TileCherry = 2 };
+enum class LevelTile { BLANK = 0, OBSTACLE = 1, CHERRY = 2 };
 
-class Level
-{
-public:
-	Level() : tiles(), size(0) { }
+bool load_level(GLFWwindow *window);
+void init_level(GLFWwindow *window, 
+				int level_size, 
+				float grid_scale, 
+				const vec3 &grid_color);
 
-	void init(int level_size)
-	{
-		size = level_size;
-		clear_tiles(TileBlank);
-	}
+void free_level(GLFWwindow *window);
+void update_level(GLFWwindow *window, double dt);
+void render_level(GLFWwindow *window, double dt);
 
-	void clear_tiles(int type)
-	{
-		tiles = std::vector<int>(size * size);
-		for (int i = 0; i < size * size; ++i)
-			tiles[i] = type;
-	}
-
-	void set_tile(int x, int y, int type) { tiles[y * size + x] = type; }
-	int get_tile(int x, int y) const { return tiles[y * size + x]; }
-
-	int get_size() const { return size;  }
-private:
-	std::vector<int> tiles;
-	int size;
-};
+LevelTile level_get_tile(int x, int y);
+void level_clear_tiles(LevelTile tile);
+void level_set_tile(int x, int y, LevelTile tile);
+int level_get_size();
+float level_get_cell_size();
+vec2 level_to_world_pos(const vec2i &p);
 
 #endif

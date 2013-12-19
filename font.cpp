@@ -129,10 +129,15 @@ vec2i measure_string(const Font &font, const string &text)
 	return vec2i(width, height);
 }
 
-void draw_string(const Font &font, Shader &shader, float x, float y, float r, float g, float b, float a, const string &text)
+void draw_string(const Font &font, Shader &shader, float x, float y, const vec4 &color, const string &text)
 {
 	std::vector<float> v_buffer;
 	std::vector<uint32> i_buffer;
+
+	float r = color.x;
+	float g = color.y;
+	float b = color.z;
+	float a = color.w;
 
 	float cx = x;
 	float cy = y;
@@ -192,5 +197,5 @@ void draw_string(const Font &font, Shader &shader, float x, float y, float r, fl
 
 void draw_string(const Font &font, Shader &shader, float x, float y, const string &text)
 {
-	draw_string(font, shader, x, y, 1.0f, 1.0f, 1.0f, 1.0f, text);
+	draw_string(font, shader, x, y, vec4(1.0f), text);
 }

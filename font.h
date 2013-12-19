@@ -25,7 +25,7 @@ bool load_font(Font &font, const string &path);
 vec2i measure_string(const Font &font, const string &text);
 void draw_string(const Font &font, Shader &shader, 
 				 float x, float y, 
-				 float r, float g, float b, float a, 
+				 const vec4 &color,
 				 const string &text);
 void draw_string(const Font &font, Shader &shader, 
 				 float x, float y, 

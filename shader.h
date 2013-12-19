@@ -6,9 +6,11 @@
 class Shader
 {
 public:
+	static Shader *active_shader;
+
 	Shader();
 
-	void load(const string &vs_path, const string &fs_path);
+	bool load(const string &vs_path, const string &fs_path);
 	void dispose();
 	void use();
 	void unuse();
@@ -33,5 +35,7 @@ private:
 	std::unordered_map<string, GLint> uniforms;
 	GLuint program;
 };
+
+Shader *get_active_shader();
 
 #endif

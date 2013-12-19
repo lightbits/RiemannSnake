@@ -1,26 +1,39 @@
 #include "shader.h"
+#include <iostream>
+
+Shader *Shader::active_shader = nullptr;
+Shader *get_active_shader() { return Shader::active_shader; }
 
 Shader::Shader() : program(0) { }
 
-void Shader::load(const string &vs_path, const string &fs_path)
+bool Shader::load(const string &vs_path, const string &fs_path)
 {
-	program = load_program(vs_path, fs_path);
+	if(!load_program(program, vs_path, fs_path))
+	{
+		std::cerr << "Error loading shader: " << vs_path << ", " << fs_path << std::endl;
+		return false;
+	}
+	return true;
 }
 
 void Shader::dispose()
 {
 	attributes.clear();
 	uniforms.clear();
+	if (active_shader == this)
+		active_shader = nullptr;
 	glDeleteProgram(program);
 }
 
 void Shader::use()
 {
+	active_shader = this;
 	glUseProgram(program);
 }
 
 void Shader::unuse()
 {
+	active_shader = nullptr;
 	glUseProgram(0);
 }
 

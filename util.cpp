@@ -1,11 +1,15 @@
 #include "util.h"
 #include <fstream>
+#include <iostream>
 
 bool read_file(string path, string &dest)
 {
 	std::ifstream in(path, std::ios::in | std::ios::binary);
 	if(!in.is_open())
+	{
+		std::cerr << "Error reading file: " << path << std::endl;
 		return false;
+	}
 
 	if(in.good())
 	{
@@ -29,9 +33,9 @@ GLuint gen_buffer(GLenum target, GLsizei size, const void *data)
 	return buffer;
 }
 
-GLuint make_shader(GLenum type, string source)
+bool make_shader(GLuint &shader, GLenum type, string source)
 {
-	GLuint shader = glCreateShader(type);
+	shader = glCreateShader(type);
 	const char *src = source.c_str();
     glShaderSource(shader, 1, &src, NULL);
     glCompileShader(shader);
@@ -42,25 +46,35 @@ GLuint make_shader(GLenum type, string source)
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
         GLchar *info = new GLchar[length];
         glGetShaderInfoLog(shader, length, NULL, info);
-        fprintf(stderr, "glCompileShader failed:\n%s\n", info);
+        fprintf(stderr, "Error compiling shader:\n%s\n", info);
         delete[] info;
+		return false;
     }
-    return shader;
+    return true;
 }
 
-GLuint load_shader(GLenum type, string path)
+bool load_shader(GLuint &shader, GLenum type, string path)
 {
 	string source;
-	read_file(path, source);
-	return make_shader(type, source);
+	if(!read_file(path, source))
+		return false;
+	if(!make_shader(shader, type, source))
+		return false;
+	return true;
 }
 
-GLuint make_program(GLuint vs_shader, GLuint fs_shader)
+bool make_program(GLuint &program, GLuint vs_shader, GLuint fs_shader)
 {
-	GLuint program = glCreateProgram();
+	program = glCreateProgram();
     glAttachShader(program, vs_shader);
     glAttachShader(program, fs_shader);
     glLinkProgram(program);
+
+    glDetachShader(program, vs_shader);
+    glDetachShader(program, fs_shader);
+    glDeleteShader(vs_shader);
+    glDeleteShader(fs_shader);
+
     GLint status;
     glGetProgramiv(program, GL_LINK_STATUS, &status);
     if (status == GL_FALSE) {
@@ -68,23 +82,22 @@ GLuint make_program(GLuint vs_shader, GLuint fs_shader)
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
         GLchar *info = new GLchar[length];
         glGetProgramInfoLog(program, length, NULL, info);
-        fprintf(stderr, "glLinkProgram failed: %s\n", info);
+        fprintf(stderr, "Error linking program: %s\n", info);
         delete[] info;
+		return false;
     }
-
-	// Shaders are unnecessary after linking
-    glDetachShader(program, vs_shader);
-    glDetachShader(program, fs_shader);
-    glDeleteShader(vs_shader);
-    glDeleteShader(fs_shader);
-    return program;
+    return true;
 }
 
-GLuint load_program(string vs_path, string fs_path)
+bool load_program(GLuint &program, string vs_path, string fs_path)
 {
-	GLuint vs_shader = load_shader(GL_VERTEX_SHADER, vs_path);
-	GLuint fs_shader = load_shader(GL_FRAGMENT_SHADER, fs_path);
-	return make_program(vs_shader, fs_shader);
+	GLuint vs_shader, fs_shader;
+	if(!load_shader(vs_shader, GL_VERTEX_SHADER, vs_path) ||
+		!load_shader(fs_shader, GL_FRAGMENT_SHADER, fs_path))
+		return false;
+	if(!make_program(program, vs_shader, fs_shader))
+		return false;
+	return true;
 }
 
 void set_uniform(GLint location, const mat4 &mat) { glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat)); }

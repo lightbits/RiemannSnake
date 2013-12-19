@@ -6,10 +6,10 @@
 #include "types.h"
 
 GLuint gen_buffer(GLenum target, GLsizei size, const void *data);
-GLuint make_shader(GLenum type, string source);
-GLuint load_shader(GLenum type, string path);
-GLuint make_program(GLuint vs_shader, GLuint fs_shader);
-GLuint load_program(string vs_path, string fs_path);
+bool make_shader(GLuint &shader, GLenum type, string source);
+bool make_program(GLuint &program, GLuint vs_shader, GLuint fs_shader);
+bool load_shader(GLuint &shader, GLenum type, string path);
+bool load_program(GLuint &program, string vs_path, string fs_path);
 
 // Converts a GLenum to a text error
 const char *get_gl_error_msg(GLenum code);
