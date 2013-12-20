@@ -6,6 +6,8 @@
 bool load_player(GLFWwindow *window);
 void init_player(GLFWwindow *window,
 				 int start_length, 
+				 float player_speed,
+				 const vec2 &start_pos,
 				 const vec3 &head_color, 
 				 const vec3 &body_color);
 void free_player(GLFWwindow *window);
@@ -13,8 +15,8 @@ void handle_player_input(GLFWwindow *window, double dt);
 void update_player(GLFWwindow *window, double dt);
 void render_player(GLFWwindow *window, double dt);
 
-vec2i player_get_pos();
-vec2i player_get_vel();
+vec2 player_get_pos();
+vec2 player_get_vel();
 int player_get_length();
 
 #endif

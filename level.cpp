@@ -28,6 +28,8 @@ void init_level(GLFWwindow *window,
 	level.mesh_grid = generate_grid(level_size, grid_scale, grid_color);
 
 	level_clear_tiles(LevelTile::BLANK);
+
+	level_set_tile(5, 5, LevelTile::APPLE);
 }
 
 void free_level(GLFWwindow *window)
@@ -75,7 +77,7 @@ float level_get_cell_size()
 	return level.grid_scale / float(level.size);
 }
 
-vec2 level_to_world_pos(const vec2i &p)
+vec2 level_to_world_pos(const vec2 &p)
 {
 	float cs = level_get_cell_size();
 	return vec2(

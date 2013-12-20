@@ -4,7 +4,7 @@
 #include "types.h"
 #include <vector>
 
-enum class LevelTile { BLANK = 0, OBSTACLE = 1, CHERRY = 2 };
+enum class LevelTile { BLANK = 0, OBSTACLE = 1, APPLE = 2 };
 
 bool load_level(GLFWwindow *window);
 void init_level(GLFWwindow *window, 
@@ -21,6 +21,6 @@ void level_clear_tiles(LevelTile tile);
 void level_set_tile(int x, int y, LevelTile tile);
 int level_get_size();
 float level_get_cell_size();
-vec2 level_to_world_pos(const vec2i &p);
+vec2 level_to_world_pos(const vec2 &p);
 
 #endif

@@ -8,8 +8,10 @@
 #include "transform.h"
 #include <iostream>
 
-#define LEVEL_SIZE 12
-#define PLAYER_START_LENGTH 4
+#define LEVEL_SIZE 16
+#define PLAYER_START_LENGTH 1
+#define PLAYER_START_POS 8, 8
+#define PLAYER_SPEED 2.0f
 #define GRID_SCALE 2.0f
 #define GRID_COLOR 48 / 255.0f, 98 / 255.0f, 48 / 255.0f
 #define PLAYER_HEAD_COLOR 15 / 255.0f, 56 / 255.0f, 15 / 255.0f
@@ -45,8 +47,17 @@ bool load_game(GLFWwindow *window)
 
 void init_game(GLFWwindow *window)
 {
-	init_player(window, PLAYER_START_LENGTH, vec3(PLAYER_HEAD_COLOR), vec3(PLAYER_BODY_COLOR));
-	init_level(window, LEVEL_SIZE, GRID_SCALE, vec3(GRID_COLOR));
+	init_player(window, 
+		PLAYER_START_LENGTH, 
+		PLAYER_SPEED,
+		vec2(PLAYER_START_POS), 
+		vec3(PLAYER_HEAD_COLOR), 
+		vec3(PLAYER_BODY_COLOR));
+
+	init_level(window, 
+		LEVEL_SIZE, 
+		GRID_SCALE, 
+		vec3(GRID_COLOR));
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
