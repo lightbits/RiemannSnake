@@ -8,8 +8,8 @@ void init_player(GLFWwindow *window,
 				 int start_length, 
 				 float player_speed,
 				 const vec2 &start_pos,
-				 const vec3 &head_color, 
-				 const vec3 &body_color);
+				 const vec4 &head_color, 
+				 const vec4 &body_color);
 void free_player(GLFWwindow *window);
 void handle_player_input(GLFWwindow *window, double dt);
 void update_player(GLFWwindow *window, double dt);

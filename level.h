@@ -10,7 +10,7 @@ bool load_level(GLFWwindow *window);
 void init_level(GLFWwindow *window, 
 				int level_size, 
 				float grid_scale, 
-				const vec3 &grid_color);
+				const vec4 &grid_color);
 
 void free_level(GLFWwindow *window);
 void update_level(GLFWwindow *window, double dt);

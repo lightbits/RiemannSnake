@@ -11,12 +11,22 @@ struct Mesh
 
 void delete_mesh(Mesh &mesh);
 
+Mesh generate_wireframe_sphere(float radius,
+							   int t_samples,
+							   int s_samples,
+							   const vec4 &color);
+
+Mesh generate_sphere(float radius, 
+					 int t_samples,
+					 int s_samples,
+					 const vec4 &color);
+
 Mesh generate_color_cube(float size, 
-						 const vec3 &color);
+						 const vec4 &color);
 
 Mesh generate_grid(int lines, 
 				   float size, 
-				   const vec3 &color);
+				   const vec4 &color);
 
 // Renders indexed meshes of layout
 // x y z r g b a, x y z r g b a, ...

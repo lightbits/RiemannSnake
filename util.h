@@ -4,6 +4,9 @@
 #include <glload/gll.h> // Loading interface
 #include <GLFW/glfw3.h> // GLFW windowing library
 #include "types.h"
+#define M_PI 3.14159265359
+#define M_TWO_PI 6.28318530718
+#define M_PI_TWO 1.57079632679
 
 GLuint gen_buffer(GLenum target, GLsizei size, const void *data);
 bool make_shader(GLuint &shader, GLenum type, string source);

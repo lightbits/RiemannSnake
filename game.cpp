@@ -13,18 +13,28 @@
 #define PLAYER_START_POS 8, 8
 #define PLAYER_SPEED 2.0f
 #define GRID_SCALE 2.0f
-#define GRID_COLOR 48 / 255.0f, 98 / 255.0f, 48 / 255.0f
-#define PLAYER_HEAD_COLOR 15 / 255.0f, 56 / 255.0f, 15 / 255.0f
-#define PLAYER_BODY_COLOR 48 / 255.0f, 98 / 255.0f, 48 / 255.0f
-#define BG_COLOR 155 / 255.0f, 188 / 255.0f, 15 / 255.0f, 1.0f
-#define TEXT_COLOR 15 / 255.0f, 56 / 255.0f, 15 / 255.0f
+#define GRID_COLOR 0xFFF59FFF
+#define PLAYER_HEAD_COLOR 0xB22763ff
+#define PLAYER_BODY_COLOR 0xFF529Cff
+#define BG_COLOR 0x2db3ccff
+#define TEXT_COLOR 0xFFF59FFF
+
+vec4 to_rgb(uint32 hex)
+{
+	return vec4(
+		((hex>>24) & 0xff) / 255.0f,
+		((hex>>16) & 0xff) / 255.0f,
+		((hex>>8) & 0xff) / 255.0f,
+		(hex & 0xff) / 255.0f);
+}
 
 enum GameState { PLAY_STATE, MENU_STATE };
 GameState game_state = PLAY_STATE;
 
 Shader 
 	shader_default,
-	shader_sprite;
+	shader_sprite,
+	shader_wireframe;
 
 Font
 	font_debug;
@@ -40,6 +50,7 @@ bool load_game(GLFWwindow *window)
 		!load_level(window) ||
 		!shader_default.load("shaders/default.vs", "shaders/default.fs") ||
 		!shader_sprite.load("shaders/sprite.vs", "shaders/sprite.fs") ||
+		!shader_wireframe.load("shaders/wireframe.vs", "shaders/wireframe.fs") ||
 		!load_font(font_debug, "textures/proggytinyttsz_8x12.png"))
 		return false;
 	return true;
@@ -50,14 +61,14 @@ void init_game(GLFWwindow *window)
 	init_player(window, 
 		PLAYER_START_LENGTH, 
 		PLAYER_SPEED,
-		vec2(PLAYER_START_POS), 
-		vec3(PLAYER_HEAD_COLOR), 
-		vec3(PLAYER_BODY_COLOR));
+		vec2(PLAYER_START_POS),
+		to_rgb(PLAYER_HEAD_COLOR),
+		to_rgb(PLAYER_BODY_COLOR));
 
 	init_level(window, 
 		LEVEL_SIZE, 
 		GRID_SCALE, 
-		vec3(GRID_COLOR));
+		to_rgb(GRID_COLOR));
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -85,8 +96,8 @@ void update_play_state(GLFWwindow *window, double dt)
 	update_level(window, dt);
 
 	float time = (float) glfwGetTime();
-	mat_view = translate(0.0f, 0.0f, -3.0f) * rotate_x(-1.54f);
-	//mat_view = translate(0.0f, 0.0f, -3.0f) * rotate_x(-0.45f) * rotate_y(sin(time) * 0.01f + 0.3f);
+	//mat_view = translate(0.0f, 0.0f, -3.0f) * rotate_x(-1.54f);
+	mat_view = translate(0.0f, 0.0f, -3.0f) * rotate_x(-0.45f) * rotate_y(time * 0.2f);
 }
 
 void update_menu_state(GLFWwindow *window, double dt)
@@ -98,38 +109,49 @@ void render_play_state(GLFWwindow *window, double dt)
 {
 	double time = glfwGetTime();
 
-	glClearColor(BG_COLOR);
+	vec4 cc = to_rgb(BG_COLOR);
+	glClearColor(cc.r, cc.g, cc.b, cc.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	shader_default.use();
-	shader_default.set_uniform("projection", mat_perspective);
-	shader_default.set_uniform("view", mat_view);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CW);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LEQUAL);
 	glDepthRange(0.0, 1.0);
-	render_player(window, dt);
+
+	shader_wireframe.use();
+	shader_wireframe.set_uniform("projection", mat_perspective);
+	shader_wireframe.set_uniform("view", mat_view);
 	render_level(window, dt);
+	shader_wireframe.unuse();
+
+	shader_default.use();
+	shader_default.set_uniform("projection", mat_perspective);
+	shader_default.set_uniform("view", mat_view);
+	render_player(window, dt);
+	shader_default.unuse();
 	glDisable(GL_DEPTH_TEST);
 
-	shader_default.unuse();
-
 	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
 	shader_sprite.use();
 	shader_sprite.set_uniform("projection", mat_orthographic);
-	shader_sprite.set_uniform("view", scale(2.0f));
+	shader_sprite.set_uniform("view", scale(1.0f));
 
 	Text debug_text;
 	debug_text << "x: " << player_get_pos().x << "\ny: " << player_get_pos().y << '\n';
 	debug_text << "x: " << player_get_vel().x << "\ny: " << player_get_vel().y;
-	draw_string(font_debug, shader_sprite, 5.0f, 5.0f, vec4(TEXT_COLOR, 1.0), debug_text.get_string());
+	draw_string(font_debug, shader_sprite, 5.0f, 5.0f, to_rgb(TEXT_COLOR), debug_text.get_string());
 	shader_sprite.unuse();
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
 }
 
 void render_menu_state(GLFWwindow *window, double dt)

@@ -1,12 +1,13 @@
 #include "level.h"
 #include "cube.h"
+#include <iostream>
 
 struct Level
 {
 	int size;
 	float grid_scale;
 	std::vector<LevelTile> tiles;
-	Mesh mesh_grid;
+	Mesh mesh_sphere;
 };
 
 Level level;
@@ -20,12 +21,12 @@ bool load_level(GLFWwindow *window)
 void init_level(GLFWwindow *window, 
 				int level_size, 
 				float grid_scale, 
-				const vec3 &grid_color)
+				const vec4 &grid_color)
 {
 	level.size = level_size;
 	level.grid_scale = grid_scale;
 	level.tiles = std::vector<LevelTile>(level_size * level_size);
-	level.mesh_grid = generate_grid(level_size, grid_scale, grid_color);
+	level.mesh_sphere = generate_wireframe_sphere(1.0f, 16, 16, grid_color);
 
 	level_clear_tiles(LevelTile::BLANK);
 
@@ -36,7 +37,7 @@ void free_level(GLFWwindow *window)
 {
 	level.tiles.clear();
 	level.size = 0;
-	delete_mesh(level.mesh_grid);
+	delete_mesh(level.mesh_sphere);
 }
 
 void update_level(GLFWwindow *window, double dt)
@@ -48,7 +49,20 @@ void render_level(GLFWwindow *window, double dt)
 {
 	Shader *shader = get_active_shader();
 	shader->set_uniform("model", mat4(1.0f));
-	render_pos_col(GL_LINES, *shader, level.mesh_grid);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, level.mesh_sphere.vbo);
+	shader->set_attribfv("position", 3, 10, 0);
+	shader->set_attribfv("barycentric", 3, 10, 3);
+	shader->set_attribfv("color", 4, 10, 6);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, level.mesh_sphere.ibo);
+	glDrawElements(GL_TRIANGLES, level.mesh_sphere.index_count, GL_UNSIGNED_INT, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	shader->unset_attrib("position");
+	shader->unset_attrib("color");
+	shader->unset_attrib("barycentric");
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 LevelTile level_get_tile(int x, int y)

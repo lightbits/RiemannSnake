@@ -8,51 +8,150 @@ void delete_mesh(Mesh &mesh)
 	glDeleteBuffers(1, &mesh.ibo);
 }
 
+Mesh generate_wireframe_sphere(float radius,
+							   int t_samples,
+							   int s_samples,
+							   const vec4 &color)
+{
+	std::vector<float> vertex_buffer;
+	std::vector<uint32> index_buffer;
+
+	float dtheta = M_TWO_PI / float(t_samples);
+	float dphi = M_PI / float(s_samples);
+	float rho = radius;
+	int vertex_count = 0;
+	for (int t = 0; t < t_samples; ++t)
+	{
+		for (int s = 0; s < s_samples; ++s)
+		{
+			float theta = t * dtheta;
+			float phi = s * dphi;
+
+			float r0 = rho * sin(phi);
+			float r1 = rho * sin(phi + dphi);
+
+			vec3 v00(r0 * cos(theta), rho * cos(phi), r0 * sin(theta));
+			vec3 v10(r0 * cos(theta + dtheta), rho * cos(phi), r0 * sin(theta + dtheta));
+			vec3 v01(r1 * cos(theta), rho * cos(phi + dphi), r1 * sin(theta));
+			vec3 v11(r1 * cos(theta + dtheta), rho * cos(phi + dphi), r1 * sin(theta + dtheta));
+			
+			float vertices[] = {
+				v00.x, v00.y, v00.z, 0.0f, 0.0f, 1.0f, color.r, color.g, color.b, color.a,
+				v01.x, v01.y, v01.z, 0.0f, 1.0f, 0.0f, color.r, color.g, color.b, color.a,
+				v11.x, v11.y, v11.z, 1.0f, 0.0f, 0.0f, color.r, color.g, color.b, color.a,
+				v10.x, v10.y, v10.z, 0.0f, 1.0f, 0.0f, color.r, color.g, color.b, color.a
+			};
+
+			uint32 j = vertex_count;
+			uint32 indices[] = { j, j + 1, j + 2, j + 2, j + 3, j };
+			vertex_count += 4;
+			vertex_buffer.insert(vertex_buffer.end(), vertices, vertices + 40);
+			index_buffer.insert(index_buffer.end(), indices, indices + 6);
+		}
+	}
+
+	Mesh mesh;
+	mesh.vbo = gen_buffer(GL_ARRAY_BUFFER, vertex_buffer.size() * sizeof(float), &vertex_buffer[0]);
+	mesh.ibo = gen_buffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer.size() * sizeof(uint32), &index_buffer[0]);
+	mesh.index_count = index_buffer.size();
+	return mesh;
+}
+
+Mesh generate_sphere(float radius, 
+					 int t_samples,
+					 int s_samples,
+					 const vec4 &color)
+{
+	std::vector<float> vertex_buffer;
+	std::vector<uint32> index_buffer;
+
+	float dtheta = M_TWO_PI / float(t_samples);
+	float dphi = M_PI / float(s_samples);
+	float rho = radius;
+	int vertex_count = 0;
+	for (int t = 0; t < t_samples; ++t)
+	{
+		for (int s = 0; s < s_samples; ++s)
+		{
+			float theta = t * dtheta;
+			float phi = s * dphi;
+
+			float r0 = rho * sin(phi);
+			float r1 = rho * sin(phi + dphi);
+
+			vec3 v00(r0 * cos(theta), rho * cos(phi), r0 * sin(theta));
+			vec3 v10(r0 * cos(theta + dtheta), rho * cos(phi), r0 * sin(theta + dtheta));
+			vec3 v01(r1 * cos(theta), rho * cos(phi + dphi), r1 * sin(theta));
+			vec3 v11(r1 * cos(theta + dtheta), rho * cos(phi + dphi), r1 * sin(theta + dtheta));
+			
+			float vertices[] = {
+				v00.x, v00.y, v00.z, color.r, color.g, color.b, color.a,
+				v01.x, v01.y, v01.z, color.r, color.g, color.b, color.a,
+				v11.x, v11.y, v11.z, color.r, color.g, color.b, color.a,
+				v10.x, v10.y, v10.z, color.r, color.g, color.b, color.a
+			};
+
+			uint32 j = vertex_count;
+			uint32 indices[] = { j, j + 1, j + 2, j + 2, j + 3, j };
+			vertex_count += 4;
+			vertex_buffer.insert(vertex_buffer.end(), vertices, vertices + 28);
+			index_buffer.insert(index_buffer.end(), indices, indices + 6);
+		}
+	}
+
+	Mesh mesh;
+	mesh.vbo = gen_buffer(GL_ARRAY_BUFFER, vertex_buffer.size() * sizeof(float), &vertex_buffer[0]);
+	mesh.ibo = gen_buffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer.size() * sizeof(uint32), &index_buffer[0]);
+	mesh.index_count = index_buffer.size();
+	return mesh;
+}
+
 Mesh generate_color_cube(float size, 
-						 const vec3 &color)
+						 const vec4 &color)
 {
 	Mesh mesh;
 	float hs = size / 2.0f;
 	float r = color.x;
 	float g = color.g;
 	float b = color.b;
+	float a = color.a;
 
 	float vertices[] = {
 		// Front
-		-hs, -hs, +hs, r, g, b, 1.0f,
-		+hs, -hs, +hs, r, g, b, 1.0f,
-		+hs, +hs, +hs, r, g, b, 1.0f,
-		-hs, +hs, +hs, r, g, b, 1.0f,
+		-hs, -hs, +hs, r, g, b, a,
+		+hs, -hs, +hs, r, g, b, a,
+		+hs, +hs, +hs, r, g, b, a,
+		-hs, +hs, +hs, r, g, b, a,
 
 		// Back
-		-hs, -hs, -hs, r, g, b, 1.0f,
-		-hs, +hs, -hs, r, g, b, 1.0f,
-		+hs, +hs, -hs, r, g, b, 1.0f,
-		+hs, -hs, -hs, r, g, b, 1.0f,
+		-hs, -hs, -hs, r, g, b, a,
+		-hs, +hs, -hs, r, g, b, a,
+		+hs, +hs, -hs, r, g, b, a,
+		+hs, -hs, -hs, r, g, b, a,
 
 		// Left
-		-hs, -hs, -hs, r, g, b, 1.0f,
-		-hs, -hs, +hs, r, g, b, 1.0f,
-		-hs, +hs, +hs, r, g, b, 1.0f,
-		-hs, +hs, -hs, r, g, b, 1.0f,
+		-hs, -hs, -hs, r, g, b, a,
+		-hs, -hs, +hs, r, g, b, a,
+		-hs, +hs, +hs, r, g, b, a,
+		-hs, +hs, -hs, r, g, b, a,
 
 		// Right
-		+hs, -hs, +hs, r, g, b, 1.0f,
-		+hs, -hs, -hs, r, g, b, 1.0f,
-		+hs, +hs, -hs, r, g, b, 1.0f,
-		+hs, +hs, +hs, r, g, b, 1.0f,
+		+hs, -hs, +hs, r, g, b, a,
+		+hs, -hs, -hs, r, g, b, a,
+		+hs, +hs, -hs, r, g, b, a,
+		+hs, +hs, +hs, r, g, b, a,
 
 		// Top
-		-hs, +hs, +hs, r, g, b, 1.0f,
-		+hs, +hs, +hs, r, g, b, 1.0f,
-		+hs, +hs, -hs, r, g, b, 1.0f,
-		-hs, +hs, -hs, r, g, b, 1.0f,
+		-hs, +hs, +hs, r, g, b, a,
+		+hs, +hs, +hs, r, g, b, a,
+		+hs, +hs, -hs, r, g, b, a,
+		-hs, +hs, -hs, r, g, b, a,
 
 		// Bottom
-		-hs, -hs, +hs, r, g, b, 1.0f,
-		-hs, -hs, -hs, r, g, b, 1.0f,
-		+hs, -hs, -hs, r, g, b, 1.0f,
-		+hs, -hs, +hs, r, g, b, 1.0f
+		-hs, -hs, +hs, r, g, b, a,
+		-hs, -hs, -hs, r, g, b, a,
+		+hs, -hs, -hs, r, g, b, a,
+		+hs, -hs, +hs, r, g, b, a
 	};
 
 	uint32 indices[] = {
@@ -72,7 +171,7 @@ Mesh generate_color_cube(float size,
 
 Mesh generate_grid(int lines, 
 				   float size, 
-				   const vec3 &color)
+				   const vec4 &color)
 {
 	Mesh mesh;
 	std::vector<float> vertex_buffer;
@@ -84,11 +183,11 @@ Mesh generate_grid(int lines,
 		float f = (i / float(lines)) * 2.0f - 1.0f;
 		f *= hs;
 		float vertices[] = {
-			-hs, 0.0f, f, color.x, color.y, color.z, 1.0f,
-			+hs, 0.0f, f, color.x, color.y, color.z, 1.0f,
+			-hs, 0.0f, f, color.r, color.g, color.b, color.a,
+			+hs, 0.0f, f, color.r, color.g, color.b, color.a,
 
-			f, 0.0f, +hs, color.x, color.y, color.z, 1.0f,
-			f, 0.0f, -hs, color.x, color.y, color.z, 1.0f
+			f, 0.0f, +hs, color.r, color.g, color.b, color.a,
+			f, 0.0f, -hs, color.r, color.g, color.b, color.a
 		};
 		vertex_buffer.insert(vertex_buffer.end(), vertices, vertices + 28);
 

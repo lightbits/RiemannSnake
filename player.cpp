@@ -12,8 +12,8 @@ struct PlayerBlock
 struct Player
 {
 	std::vector<PlayerBlock> blocks;
-	vec3 head_color;
-	vec3 body_color;
+	vec4 head_color;
+	vec4 body_color;
 	vec2 pos;
 	vec2 vel;
 	float speed;
@@ -27,7 +27,7 @@ PlayerState player_state = PlayerState::IDLE;
 PlayerBlock create_block(float size,
 						 const vec2 &p0, 
 						 const vec2 &v0, 
-						 const vec3 &color)
+						 const vec4 &color)
 {
 	PlayerBlock block;
 	block.mesh_cube = generate_color_cube(size, color);
@@ -45,8 +45,8 @@ void init_player(GLFWwindow *window,
 				 int start_length, 
 				 float player_speed,
 				 const vec2 &start_pos,
-				 const vec3 &head_color, 
-				 const vec3 &body_color)
+				 const vec4 &head_color, 
+				 const vec4 &body_color)
 {
 	player.pos = start_pos;
 	player.speed = player_speed;
