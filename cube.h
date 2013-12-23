@@ -28,9 +28,14 @@ Mesh generate_grid(int lines,
 				   float size, 
 				   const vec4 &color);
 
-// Renders indexed meshes of layout
+// Renders indexed meshes with layout
 // x y z r g b a, x y z r g b a, ...
 void render_pos_col(GLenum mode, Shader &shader, Mesh &mesh);
+
+// Renders indexed meshes with layout
+// x y z bx by bz r g b a ...
+// Where (bx, by, bz) are barycentric coordinates.
+void render_wireframe(GLenum mode, Shader &shader, Mesh &mesh);
 
 #endif
 

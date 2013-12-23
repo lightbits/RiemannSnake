@@ -216,3 +216,20 @@ void render_pos_col(GLenum mode, Shader &shader, Mesh &mesh)
 	shader.unset_attrib("color");
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
+
+void render_wireframe(GLenum mode, Shader &shader, Mesh &mesh)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+	shader.set_attribfv("position", 3, 10, 0);
+	shader.set_attribfv("barycentric", 3, 10, 3);
+	shader.set_attribfv("color", 4, 10, 6);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ibo);
+	glDrawElements(mode, mesh.index_count, GL_UNSIGNED_INT, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	shader.unset_attrib("position");
+	shader.unset_attrib("color");
+	shader.unset_attrib("barycentric");
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}

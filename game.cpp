@@ -8,16 +8,16 @@
 #include "transform.h"
 #include <iostream>
 
-#define LEVEL_SIZE 16
-#define PLAYER_START_LENGTH 1
-#define PLAYER_START_POS 8, 8
-#define PLAYER_SPEED 2.0f
-#define GRID_SCALE 2.0f
-#define GRID_COLOR 0xFFF59FFF
-#define PLAYER_HEAD_COLOR 0xB22763ff
-#define PLAYER_BODY_COLOR 0xFF529Cff
-#define BG_COLOR 0x2db3ccff
-#define TEXT_COLOR 0xFFF59FFF
+const int		PLAYER_START_LENGTH = 1;
+const float		PLAYER_SPEED = 1.0f;
+const float		LEVEL_RADIUS = 1.0f;
+const uint32	LEVEL_EDGE_COLOR = 0xFF2222FF;
+const uint32	LEVEL_FILL_COLOR = 0x222328FF;
+const vec3		PLAYER_START_POS = vec3(LEVEL_RADIUS, M_PI_TWO, 0.0f);
+const uint32	PLAYER_HEAD_COLOR = 0xB22763FF;
+const uint32	PLAYER_BODY_COLOR = 0xFF529CFF;
+const uint32	BACKGROUND_COLOR = 0x2DB3CCFF;
+const uint32	TEXT_COLOR = 0xFFF59FFF;
 
 vec4 to_rgb(uint32 hex)
 {
@@ -61,14 +61,14 @@ void init_game(GLFWwindow *window)
 	init_player(window, 
 		PLAYER_START_LENGTH, 
 		PLAYER_SPEED,
-		vec2(PLAYER_START_POS),
+		PLAYER_START_POS,
 		to_rgb(PLAYER_HEAD_COLOR),
 		to_rgb(PLAYER_BODY_COLOR));
 
-	init_level(window, 
-		LEVEL_SIZE, 
-		GRID_SCALE, 
-		to_rgb(GRID_COLOR));
+	init_level(window,
+		LEVEL_RADIUS,
+		to_rgb(LEVEL_EDGE_COLOR),
+		to_rgb(LEVEL_FILL_COLOR));
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -109,7 +109,7 @@ void render_play_state(GLFWwindow *window, double dt)
 {
 	double time = glfwGetTime();
 
-	vec4 cc = to_rgb(BG_COLOR);
+	vec4 cc = to_rgb(BACKGROUND_COLOR);
 	glClearColor(cc.r, cc.g, cc.b, cc.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -130,12 +130,13 @@ void render_play_state(GLFWwindow *window, double dt)
 	shader_wireframe.set_uniform("projection", mat_perspective);
 	shader_wireframe.set_uniform("view", mat_view);
 	render_level(window, dt);
+	render_player(window, dt);
 	shader_wireframe.unuse();
 
 	shader_default.use();
 	shader_default.set_uniform("projection", mat_perspective);
 	shader_default.set_uniform("view", mat_view);
-	render_player(window, dt);
+	
 	shader_default.unuse();
 	glDisable(GL_DEPTH_TEST);
 
