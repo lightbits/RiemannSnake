@@ -16,11 +16,6 @@ void free_level(GLFWwindow *window);
 void update_level(GLFWwindow *window, double dt);
 void render_level(GLFWwindow *window, double dt);
 
-// Converts a spherical coordinate (rho, phi, theta), to
-// a world-coordinate system (x, y, z) with the transformation
-// x = rho * sin(phi) * cos(theta)
-// y = rho * cos(phi)
-// z = rho * sin(phi) * sin(theta)
-vec3 level_to_world_pos(float rho, float phi, float theta);
+vec3 level_get_normal(const vec3 &p);
 
 #endif

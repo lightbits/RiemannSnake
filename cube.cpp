@@ -202,7 +202,7 @@ Mesh generate_grid(int lines,
 	return mesh;
 }
 
-void render_pos_col(GLenum mode, Shader &shader, Mesh &mesh)
+void render_colored(GLenum mode, Shader &shader, Mesh &mesh)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
 	shader.set_attribfv("position", 3, 7, 0);

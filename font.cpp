@@ -131,6 +131,10 @@ vec2i measure_string(const Font &font, const string &text)
 
 void draw_string(const Font &font, Shader &shader, float x, float y, const vec4 &color, const string &text)
 {
+	// Nothing to draw
+	if (text.size() == 0)
+		return;
+
 	std::vector<float> v_buffer;
 	std::vector<uint32> i_buffer;
 

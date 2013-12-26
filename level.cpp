@@ -14,7 +14,8 @@ struct Level
 	float radius;
 	vec4 edge_color;
 	vec4 fill_color;
-	Mesh mesh_sphere;
+	Mesh mesh_sphere_wire;
+	Mesh mesh_sphere_fill;
 
 	std::vector<Object> objects;
 };
@@ -33,12 +34,14 @@ void init_level(GLFWwindow *window,
 				const vec4 &fill_color)
 {
 	level.radius = radius;
-	level.mesh_sphere = generate_wireframe_sphere(radius, 16, 16, edge_color);
+	level.mesh_sphere_wire = generate_wireframe_sphere(radius, 16, 16, fill_color);
+	level.mesh_sphere_fill = generate_sphere(radius, 16, 16, fill_color);
 }
 
 void free_level(GLFWwindow *window)
 {
-	delete_mesh(level.mesh_sphere);
+	delete_mesh(level.mesh_sphere_fill);
+	delete_mesh(level.mesh_sphere_wire);
 
 	for (auto &obj : level.objects)
 		delete_mesh(obj.mesh);
@@ -53,14 +56,19 @@ void render_level(GLFWwindow *window, double dt)
 {
 	Shader *shader = get_active_shader();
 	shader->set_uniform("model", mat4(1.0f));
-	render_wireframe(GL_TRIANGLES, *shader, level.mesh_sphere);
+	render_wireframe(GL_TRIANGLES, *shader, level.mesh_sphere_wire);
 }
 
-vec3 level_to_world_pos(float rho, float phi, float theta)
+//vec3 level_to_world_pos(const vec3 &sp)
+//{
+//	float r = sp.x * sin(sp.y);
+//	return vec3(
+//		r * cos(sp.z), 
+//		sp.x * cos(sp.y), 
+//		r * sin(sp.z));
+//}
+
+vec3 level_get_normal(const vec3 &p)
 {
-	float r = rho * sin(phi);
-	return vec3(
-		r * cos(theta), 
-		rho * cos(phi), 
-		r * sin(theta));
+	return glm::normalize(p);
 }

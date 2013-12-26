@@ -30,7 +30,7 @@ Mesh generate_grid(int lines,
 
 // Renders indexed meshes with layout
 // x y z r g b a, x y z r g b a, ...
-void render_pos_col(GLenum mode, Shader &shader, Mesh &mesh);
+void render_colored(GLenum mode, Shader &shader, Mesh &mesh);
 
 // Renders indexed meshes with layout
 // x y z bx by bz r g b a ...

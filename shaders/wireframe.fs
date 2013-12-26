@@ -19,6 +19,7 @@ float edgeFactor()
 
 void main()
 {
-	out_color.rgb = mix(vec3(1.0, 0.43, 0.35), vert_color.rgb, edgeFactor());
+	out_color = mix(vert_color, vec4(vert_color.rgb, 0.0), edgeFactor());
+	// out_color.rgb = mix(vec3(1.0, 0.43, 0.35), vert_color.rgb, edgeFactor());
 	// out_color = vec4(0.0, 0.0, 0.0, (1.0 - edgeFactor()) * 0.95);
 }
