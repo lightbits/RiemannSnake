@@ -27,11 +27,18 @@ bool read_file(const std::string &path, std::string &dest)
 
 void log_msg(const std::string &msg)
 {
+#ifdef DEBUG
+	std::cerr << msg << std::endl;
+#endif
 	log_stream << msg << std::endl;
 }
 
 void dump_log()
 {
+#ifdef DEBUG
+	if (log_stream.str().size() > 0)
+		std::cin.get();
+#endif
 	std::ofstream file("./log.txt");
 	file<<log_stream.str();
 	file.close();

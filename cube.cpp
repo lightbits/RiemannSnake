@@ -170,6 +170,24 @@ Mesh generate_color_cube(float size,
 	return mesh;
 }
 
+Mesh generate_quad()
+{
+	float vertices[] = {
+		-1.0f, -1.0f,
+		+1.0f, -1.0f,
+		+1.0f, +1.0f,
+		-1.0f, +1.0f
+	};
+
+	uint32 indices[] = { 0, 1, 2, 2, 3, 0 };
+
+	Mesh mesh;
+	mesh.vbo = gen_buffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices);
+	mesh.ibo = gen_buffer(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices);
+	mesh.index_count = 6;
+	return mesh;
+}
+
 void render_colored(GLenum mode, Shader &shader, Mesh &mesh)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);

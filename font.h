@@ -21,7 +21,7 @@ struct Font
 };
 
 void delete_font(Font &font);
-bool load_font(Font &font, const string &path);
+bool load_font(Font &font, const string &path, const string &char_set = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
 vec2i measure_string(const Font &font, const string &text);
 void draw_string(const Font &font, Shader &shader, 
 				 float x, float y, 

@@ -21,11 +21,11 @@ bool is_border_pixel(const std::vector<uint8> &pixels,
 }
 
 GlyphMap generate_glyphs(Font &font,
-	const std::vector<uint8> &pixels, 
-	uint32 width, uint32 height)
+						 const string &char_set,
+						 const std::vector<uint8> &pixels, 
+						 uint32 width, uint32 height)
 {
 	GlyphMap glyphs;
-	string char_set = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 	uint32 num_chars = char_set.size();
 	
 	uint32 index = 0;
@@ -72,7 +72,7 @@ GlyphMap generate_glyphs(Font &font,
 	return glyphs;
 }
 
-bool load_font(Font &font, const string &path)
+bool load_font(Font &font, const string &path, const string &char_set)
 {
 	//http://lodev.org/lodepng/example_decode.cpp
 	//if (!font_shader_loaded)
@@ -94,7 +94,7 @@ bool load_font(Font &font, const string &path)
 	delete_font(font);
 
 	font.glyphs.clear();
-	font.glyphs = generate_glyphs(font, pixels, width, height);
+	font.glyphs = generate_glyphs(font, char_set, pixels, width, height);
 
 	glGenTextures(1, &font.texture);
 	glBindTexture(GL_TEXTURE_2D, font.texture);
@@ -140,7 +140,11 @@ void draw_string(const Font &font, Shader &shader, float x, float y, const vec4 
 		vec2i size = measure_string(font, text);
 		x -= size.x / 2.0f;
 		y -= size.y / 2.0f;
-	}	
+	}
+
+	// Draw at integer coordinates
+	x = glm::round(x);
+	y = glm::round(y);
 
 	std::vector<float> v_buffer;
 	std::vector<uint32> i_buffer;
@@ -153,31 +157,33 @@ void draw_string(const Font &font, Shader &shader, float x, float y, const vec4 
 	float cx = x;
 	float cy = y;
 	uint32 i = 0;
+	float letter = 0.0f;
 	for (const char &c : text) {
 		Glyph glyph = font.glyphs.find(c)->second;
 		if (c == '\n')
 		{
 			cy += font.char_height;
 			cx = x;
-			continue; // Forgetting this causes weird stuff, investigate it
+			continue;
 		}
 
 		float w = float(glyph.width);
 		float h = float(glyph.height);
 		float quad[] = {
 			// Position		// Color		// Texel
-			cx, cy,			r, g, b, a,		glyph.u_left, glyph.v_bottom,
-			cx + w, cy,		r, g, b, a,		glyph.u_right, glyph.v_bottom,
-			cx + w, cy + h, r, g, b, a,		glyph.u_right, glyph.v_top,
-			cx, cy + h,		r, g, b, a,		glyph.u_left, glyph.v_top
+			cx, cy,			r, g, b, a,		glyph.u_left, glyph.v_bottom, letter,
+			cx + w, cy,		r, g, b, a,		glyph.u_right, glyph.v_bottom, letter,
+			cx + w, cy + h, r, g, b, a,		glyph.u_right, glyph.v_top, letter,
+			cx, cy + h,		r, g, b, a,		glyph.u_left, glyph.v_top, letter
 		};
 		uint32 indices[] = { i, i + 1, i + 2, i + 2, i + 3, i };
 
-		v_buffer.insert(v_buffer.end(), quad, quad + 32);
+		v_buffer.insert(v_buffer.end(), quad, quad + 36);
 		i_buffer.insert(i_buffer.end(), indices, indices + 6);
 
 		cx += w;
 		i += 4;
+		letter += 1.0f;
 	}
 
 	uint32 index_count = i_buffer.size();
@@ -186,9 +192,10 @@ void draw_string(const Font &font, Shader &shader, float x, float y, const vec4 
 	GLuint ibo = gen_buffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.size() * sizeof(float), &i_buffer[0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	shader.set_attribfv("position", 2, 8, 0);
-	shader.set_attribfv("color", 4, 8, 2);
-	shader.set_attribfv("texel", 2, 8, 6);
+	shader.set_attribfv("position", 2, 9, 0);
+	shader.set_attribfv("color", 4, 9, 2);
+	shader.set_attribfv("texel", 2, 9, 6);
+	shader.set_attribfv("letter", 2, 9, 8);
 	shader.set_uniform("tex", 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -200,6 +207,7 @@ void draw_string(const Font &font, Shader &shader, float x, float y, const vec4 
 	shader.unset_attrib("position");
 	shader.unset_attrib("color");
 	shader.unset_attrib("texel");
+	shader.unset_attrib("letter");
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glDeleteBuffers(1, &vbo);

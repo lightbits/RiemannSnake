@@ -25,7 +25,8 @@ bool make_shader(GLuint &shader, GLenum type, string source)
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
         GLchar *info = new GLchar[length];
         glGetShaderInfoLog(shader, length, NULL, info);
-        fprintf(stderr, "Error compiling shader:\n%s\n", info);
+		log_msg("Error compiling shader:");
+		log_msg(info);
         delete[] info;
 		return false;
     }
@@ -61,7 +62,8 @@ bool make_program(GLuint &program, GLuint vs_shader, GLuint fs_shader)
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
         GLchar *info = new GLchar[length];
         glGetProgramInfoLog(program, length, NULL, info);
-        fprintf(stderr, "Error linking program: %s\n", info);
+		log_msg("Error linking program: ");
+		log_msg(info);
         delete[] info;
 		return false;
     }

@@ -5,8 +5,8 @@
 #include <iostream>
 #include <unordered_map>
 
-const vec4 APPLE_COLOR = to_rgb(0x00FF00FF);
-const vec4 ENEMY_COLOR = to_rgb(0xFF0000FF);
+const vec4 APPLE_COLOR = to_rgb(0xAEEE00FF);
+const vec4 ENEMY_COLOR = to_rgb(0xA61D1DFF);
 
 struct LevelObject
 {

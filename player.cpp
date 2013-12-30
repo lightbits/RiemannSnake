@@ -1,6 +1,7 @@
 #include "player.h"
 #include "cube.h"
 #include "transform.h"
+#include "noise.h"
 #include <iostream>
 
 struct PlayerPart
@@ -108,9 +109,26 @@ void handle_player_input(GLFWwindow *window, double dt)
 	player.vel = glm::normalize(tan_vel.x * b + tan_vel.y * t) * player.speed;
 }
 
-void on_player_collision()
+vec3 rand_vec()
+{
+	float x = frand() * 2.0f - 1.0f;
+	float y = frand() * 2.0f - 1.0f;
+	float z = frand() * 2.0f - 1.0f;
+	return glm::normalize(vec3(x, y, z));
+}
+
+void on_player_death()
 {
 	player.dead = true;
+
+	// Give random velocities to parts
+	for (auto &part : player.parts)
+		part.vel = rand_vec() * 2.0f;
+}
+
+void on_player_collision()
+{
+	on_player_death();
 }
 
 void on_apple_collision()
@@ -120,7 +138,16 @@ void on_apple_collision()
 
 void on_enemy_collision()
 {
-	player.dead = true;
+	on_player_death();
+}
+
+void update_player_death(GLFWwindow *window, double dt)
+{
+	for (auto &part : player.parts)
+	{
+		part.pos += part.vel * float(dt);
+		part.vel -= 0.2f * dt;
+	}
 }
 
 void update_player(GLFWwindow *window, double dt)
