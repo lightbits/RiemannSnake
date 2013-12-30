@@ -1,6 +1,7 @@
 #include "cube.h"
 #include "util.h"
 #include <vector>
+#include <iostream>
 
 void delete_mesh(Mesh &mesh)
 {
@@ -166,39 +167,6 @@ Mesh generate_color_cube(float size,
 	mesh.vbo = gen_buffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices);
 	mesh.ibo = gen_buffer(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices);
 	mesh.index_count = 6 * 6;
-	return mesh;
-}
-
-Mesh generate_grid(int lines, 
-				   float size, 
-				   const vec4 &color)
-{
-	Mesh mesh;
-	std::vector<float> vertex_buffer;
-	std::vector<uint32> index_buffer;
-
-	float hs = size / 2.0f;
-	for (int i = 0; i <= lines; ++i)
-	{
-		float f = (i / float(lines)) * 2.0f - 1.0f;
-		f *= hs;
-		float vertices[] = {
-			-hs, 0.0f, f, color.r, color.g, color.b, color.a,
-			+hs, 0.0f, f, color.r, color.g, color.b, color.a,
-
-			f, 0.0f, +hs, color.r, color.g, color.b, color.a,
-			f, 0.0f, -hs, color.r, color.g, color.b, color.a
-		};
-		vertex_buffer.insert(vertex_buffer.end(), vertices, vertices + 28);
-
-		uint32 j = index_buffer.size();
-		uint32 indices[] = { j, j + 1, j + 2, j + 3 };
-		index_buffer.insert(index_buffer.end(), indices, indices + 4);
-	}
-
-	mesh.vbo = gen_buffer(GL_ARRAY_BUFFER, vertex_buffer.size() * sizeof(float), &vertex_buffer[0]);
-	mesh.ibo = gen_buffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer.size() * sizeof(uint32), &index_buffer[0]);
-	mesh.index_count = index_buffer.size();
 	return mesh;
 }
 

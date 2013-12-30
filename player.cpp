@@ -3,49 +3,46 @@
 #include "transform.h"
 #include <iostream>
 
-struct Player
+struct PlayerPart
 {
-	vec4 head_color;
-	vec4 body_color;
-	vec2 tan_vel;
 	vec3 vel;
 	vec3 pos;
-	Spherical sphere_pos;
-	float speed;
+	std::vector<vec3> past_pos;
+	Mesh *mesh;
+};
 
-	Mesh mesh_head;
+struct Player
+{
+	std::vector<PlayerPart> parts;
+	vec4 head_color;
+	vec4 body_color;
+	float radius;
+	float speed;
+	std::vector<vec3> past_pos;
+	vec3 pos;
+	vec3 vel;
+	bool dead;
 };
 
 Player player;
+Mesh mesh_head;
+Mesh mesh_body;
 
-Spherical to_spherical(float rho, const vec3 &p)
+PlayerPart create_part(const vec3 &vel, const vec3 &pos, float radius, const vec4 &color, Mesh *mesh)
 {
-	Spherical spos;
-	if (p.z == 0 && p.y > 0)
-		spos.theta = M_PI_TWO;
-	else if (p.z == 0 && p.y < 0)
-		spos.theta = -M_PI_TWO;
-	else
-		spos.theta = atan2(p.x, p.z);
-	spos.phi = asin(p.y / rho);
-	spos.rho = rho;
-	return spos;	
+	PlayerPart part;
+	part.vel = vel;
+	part.pos = pos;
+	part.mesh = mesh;
+	return part;
 }
 
-vec3 to_cartesian(const Spherical &p)
+void append_part()
 {
-	float r = p.rho * cos(p.phi);
-	return vec3(
-		r * sin(p.theta),
-		p.rho * sin(p.phi),
-		r * cos(p.theta));
-}
-
-void tangent_frame(const vec3 &pos, const vec3 &vel, vec3 &T, vec3 &N, vec3 &B)
-{
-	T = glm::normalize(vel);
-	N = glm::normalize(pos);
-	B = glm::normalize(glm::cross(N, T));
+	auto last = player.parts.end() - 1;
+	vec3 p = last->pos;
+	vec3 v = last->vel;
+	player.parts.push_back(create_part(v, p, player.radius, player.body_color, &mesh_body));
 }
 
 bool load_player(GLFWwindow *window)
@@ -54,112 +51,130 @@ bool load_player(GLFWwindow *window)
 }
 
 void init_player(GLFWwindow *window, 
-				 int start_length, 
 				 float player_speed,
+				 float player_radius,
 				 const vec3 &start_pos,
 				 const vec4 &head_color, 
 				 const vec4 &body_color)
 {
-	player.sphere_pos = Spherical(1.0f, 0.0f, 0.3f);
+	mesh_head = generate_sphere(1.0f, 8, 8, head_color);
+	mesh_body = generate_sphere(1.0f, 8, 8, body_color);
+
+	player.dead = false;
 	player.speed = player_speed;
-	player.tan_vel = vec2(0.0f, 1.0f);
+	player.radius = player_radius;
 	player.head_color = head_color;
 	player.body_color = body_color;
 
-	player.vel = vec3(0.0f, 1.0f, 0.0f);
-	player.pos = vec3(0.0f, 0.0f, 1.0f);
+	player.vel = vec3(0.0f, 1.0f, 0.0f) * player_speed;
+	player.pos = start_pos;
 
-	player.mesh_head = generate_sphere(1.0f, 8, 8, head_color);
+	player.parts.push_back(create_part(player.vel, player.pos, player.radius, player.head_color, &mesh_head));
 }
 
 void free_player(GLFWwindow *window)
 {
-	delete_mesh(player.mesh_head);
+	for (int i = 0; i < player.parts.size(); ++i)
+		player.parts[i].past_pos.clear();
+	player.parts.clear();
+	player.past_pos.clear();
+
+	delete_mesh(mesh_head);
+	delete_mesh(mesh_body);
 }
 
-void set_player_velocity(float x, float y)
-{
-	player.tan_vel = vec2(x, y);
-}
-
-void set_pos_spherical(vec3 *sp, float r, float phi, float theta)
-{
-	phi = glm::mod(phi, float(M_TWO_PI));
-	theta = glm::mod(theta, float(M_TWO_PI));
-	*sp = vec3(r, phi, theta);
-}
-
-void move_spherical(vec3 *sp, const vec3 &velocity)
-{
-	set_pos_spherical(sp, sp->x + velocity.x, sp->y + velocity.y, sp->z + velocity.z);
-}
-
+bool spawning = false;
 void handle_player_input(GLFWwindow *window, double dt)
 {
 	vec2 tan_vel(0.0f, 1.0f);
 	if (glfwGetKey(window, GLFW_KEY_RIGHT))
-		tan_vel = glm::normalize(vec2(-0.1f, 1.0f));
+		tan_vel = glm::normalize(vec2(-3.0f * dt, 1.0f));
 	else if (glfwGetKey(window, GLFW_KEY_LEFT))
-		tan_vel = glm::normalize(vec2(+0.1f, 1.0f));
+		tan_vel = glm::normalize(vec2(+3.0f * dt, 1.0f));
 
-	vec3 T, N, B;
-	tangent_frame(player.pos, player.vel, T, N, B);
-	player.vel = glm::normalize(tan_vel.x * B + tan_vel.y * T);
-		
-	//vec2 residual_vel = player.tan_vel;
-	//float acceleration = 0.0f;
-	//if (glfwGetKey(window, GLFW_KEY_LEFT))
-	//	acceleration = -2.0f;
-	//else if (glfwGetKey(window, GLFW_KEY_RIGHT))
-	//	acceleration = 2.0f;
+	if (glfwGetKey(window, GLFW_KEY_SPACE) && ! spawning)
+	{
+		spawning = true;
+		append_part();
+	}
+	else if (!glfwGetKey(window, GLFW_KEY_SPACE))
+	{
+		spawning = false;
+	}
 
-	//residual_vel = rotate_xy(residual_vel, acceleration * dt);
-	//set_player_velocity(residual_vel.x, residual_vel.y);
+	vec3 n = level_get_normal(player.pos);
+	vec3 t = glm::normalize(player.vel);
+	vec3 b = glm::normalize(glm::cross(n, t));
+	player.vel = glm::normalize(tan_vel.x * b + tan_vel.y * t) * player.speed;
+}
+
+void on_player_collision()
+{
+	player.dead = true;
+}
+
+void on_apple_collision()
+{
+	append_part();
+}
+
+void on_enemy_collision()
+{
+	player.dead = true;
 }
 
 void update_player(GLFWwindow *window, double dt)
 {
-	player.vel -= level_get_normal(player.pos) * player.speed * player.speed * float(dt) / 1.0f;
-	player.pos += player.vel * player.speed * float(dt);
-	player.sphere_pos = to_spherical(1.0f, player.pos);
-	//player.sphere_pos = to_spherical(1.0f, world);
-	//vec3 acceleration = -glm::normalize(player.pos) * player.speed * player.speed / 1.0f;
-	//player.vel += acceleration * float(dt);
-	//move_spherical(&player.pos, player.vel * player.speed * float(dt));
+	// Number of steps that correspond to a single player sphere
+	static const int n = int(2.0f * player.radius / (player.speed * float(dt))) + 1;
+	player.past_pos.push_back(player.pos);
+	if (player.past_pos.size() == n)
+		player.past_pos.erase(player.past_pos.begin());
+
+	level_advect(player.pos, player.vel, float(dt));
+	player.parts[0].pos = player.pos;
+	player.parts[0].vel = player.vel;
+	player.parts[0].past_pos = player.past_pos;
+
+	for (int i = player.parts.size() - 1; i > 0; --i)
+	{
+		PlayerPart &p = player.parts[i];
+		p.past_pos.push_back(p.pos);
+		if (p.past_pos.size() == n)
+			p.past_pos.erase(p.past_pos.begin());
+		p.pos = player.parts[i - 1].past_pos[0];
+
+		if (is_close(p.pos, player.pos, player.radius * 0.8f, player.radius * 0.8f))
+			on_player_collision();
+	}
+
+	ObjectType type;
+	int id;
+	if (level_collide_object(player.pos, player.radius, type, id))
+	{
+		switch (type)
+		{
+		case ObjectType::APPLE: on_apple_collision(); break;
+		case ObjectType::ENEMY: on_enemy_collision(); break;
+		}
+		level_remove_object(id);
+	}
 }
 
 void render_player(GLFWwindow *window, double dt)
 {
 	Shader *shader = get_active_shader();
-	//vec3 world_pos = level_to_world_pos(player.pos);
-	mat4 transform = translate(player.pos) * scale(0.05f);
-	shader->set_uniform("model", transform);
-	render_colored(GL_TRIANGLES, *shader, player.mesh_head);
-
-	/*for (auto &block : player.blocks) 
+	for (auto &part : player.parts) 
 	{
-		vec2 world_pos = level_to_world_pos(block.pos);
-		mat4 transform = 
-			translate(world_pos.x, level_get_cell_size() / 2.0f, world_pos.y) *
-			scale(level_get_cell_size());
-		shader->set_uniform("model", transform);
-		render_pos_col(GL_TRIANGLES, *shader, block.mesh_cube);
-	}*/
-}
-
-Spherical player_get_sphere_pos()
-{
-	return player.sphere_pos;
+		mat4 transform = translate(part.pos);
+		shader->set_uniform("model", transform * scale(player.radius));
+		render_colored(GL_TRIANGLES, *shader, *part.mesh);
+	}
 }
 
 vec3 player_get_world_pos()
 {
 	return player.pos;
-}
-
-vec2 player_get_tan_vel()
-{
-	return player.tan_vel;
 }
 
 vec3 player_get_world_vel()
@@ -169,6 +184,10 @@ vec3 player_get_world_vel()
 
 int player_get_length()
 {
-	return 0;
-	//return player.blocks.size();
+	return player.parts.size();
+}
+
+bool player_is_dead()
+{
+	return player.dead;
 }

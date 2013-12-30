@@ -26,9 +26,11 @@ vec2i measure_string(const Font &font, const string &text);
 void draw_string(const Font &font, Shader &shader, 
 				 float x, float y, 
 				 const vec4 &color,
-				 const string &text);
+				 const string &text,
+				 bool centered = false);
 void draw_string(const Font &font, Shader &shader, 
 				 float x, float y, 
-				 const string &text);
+				 const string &text,
+				 bool centered = false);
 
 #endif

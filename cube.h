@@ -24,10 +24,6 @@ Mesh generate_sphere(float radius,
 Mesh generate_color_cube(float size, 
 						 const vec4 &color);
 
-Mesh generate_grid(int lines, 
-				   float size, 
-				   const vec4 &color);
-
 // Renders indexed meshes with layout
 // x y z r g b a, x y z r g b a, ...
 void render_colored(GLenum mode, Shader &shader, Mesh &mesh);

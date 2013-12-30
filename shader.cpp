@@ -97,6 +97,6 @@ void Shader::set_uniform(const string &name, const mat2 &mat) { glUniformMatrix2
 void Shader::set_uniform(const string &name, const vec4 &vec) { glUniform4f(get_uniform_location(name), vec.x, vec.y, vec.z, vec.w); }
 void Shader::set_uniform(const string &name, const vec3 &vec) { glUniform3f(get_uniform_location(name), vec.x, vec.y, vec.z); }
 void Shader::set_uniform(const string &name, const vec2 &vec) { glUniform2f(get_uniform_location(name), vec.x, vec.y); }
-void Shader::set_uniform(const string &name, GLdouble d) { glUniform1f(get_uniform_location(name), d); }
+void Shader::set_uniform(const string &name, GLdouble d) { glUniform1f(get_uniform_location(name), float(d)); }
 void Shader::set_uniform(const string &name, GLfloat f) { glUniform1f(get_uniform_location(name), f); }
 void Shader::set_uniform(const string &name, GLint i) { glUniform1i(get_uniform_location(name), i); }

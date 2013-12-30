@@ -1,27 +1,6 @@
 #include "util.h"
-#include <fstream>
+#include "fileio.h"
 #include <iostream>
-
-bool read_file(string path, string &dest)
-{
-	std::ifstream in(path, std::ios::in | std::ios::binary);
-	if(!in.is_open())
-	{
-		std::cerr << "Error reading file: " << path << std::endl;
-		return false;
-	}
-
-	if(in.good())
-	{
-		in.seekg(0, std::ios::end);			// Set get position to end
-		dest.resize(in.tellg());			// Resize string to support enough bytes
-		in.seekg(0, std::ios::beg);			// Set get position to beginning
-		in.read(&dest[0], dest.size());		// Read file to string
-		in.close();
-	}
-
-	return true;
-}
 
 GLuint gen_buffer(GLenum target, GLsizei size, const void *data)
 {
@@ -106,7 +85,7 @@ void set_uniform(GLint location, const mat2 &mat) { glUniformMatrix2fv(location,
 void set_uniform(GLint location, const vec4 &vec) { glUniform4f(location, vec.x, vec.y, vec.z, vec.w); }
 void set_uniform(GLint location, const vec3 &vec) { glUniform3f(location, vec.x, vec.y, vec.z); }
 void set_uniform(GLint location, const vec2 &vec) { glUniform2f(location, vec.x, vec.y); }
-void set_uniform(GLint location, GLdouble d) { glUniform1f(location, d); }
+void set_uniform(GLint location, GLdouble d) { glUniform1f(location, float(d)); }
 void set_uniform(GLint location, GLfloat f) { glUniform1f(location, f); }
 void set_uniform(GLint location, GLint i) { glUniform1i(location, i); }
 
@@ -132,9 +111,34 @@ bool check_gl_errors(std::ostream &out)
 	GLenum error = glGetError();
 	while(error != GL_NO_ERROR)
 	{
-		out<<get_gl_error_msg(error)<<std::endl;
+		out << "An OpenGL error occured: " << get_gl_error_msg(error) << std::endl;
 		were_errors = true;
 		error = glGetError();
 	}
 	return were_errors;
+}
+
+vec2i get_window_size(GLFWwindow *window)
+{
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
+	return vec2i(width, height);
+}
+
+vec4 to_rgb(uint32 hex)
+{
+	return vec4(
+		((hex>>24) & 0xff) / 255.0f,
+		((hex>>16) & 0xff) / 255.0f,
+		((hex>>8) & 0xff) / 255.0f,
+		(hex & 0xff) / 255.0f);
+}
+
+bool is_close(const vec3 &a, const vec3 &b, float ra, float rb)
+{
+	vec3 ab = a - b;
+	float dist_sqrd = glm::dot(ab, ab);
+	float d = ra + rb;
+	float d_sqrd = d * d;
+	return dist_sqrd <= d_sqrd;
 }

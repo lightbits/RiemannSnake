@@ -1,17 +1,55 @@
 #include "util.h"
 #include "game.h"
 #include "timer.h"
+#include "fileio.h"
 #include <iostream>
-#define VSYNC 1
-#define FSAA_SAMPLES 4
-#define GL_VERSION_MAJOR 3
-#define GL_VERSION_MINOR 1
-#define GL_PROFILE 0 // Auto
+#include <fstream>
+#include <sstream>
 
 void error_callback(int error, const char* description)
 {
-    fputs(description, stderr);
-	std::cin.get();
+	log_msg(description);
+}
+
+void read_config(int &gl_version_major, 
+				 int &gl_version_minor, 
+				 int &fsaa_samples, 
+				 int &window_width, 
+				 int &window_height)
+{
+	// Defaults
+	gl_version_major = 3;
+	gl_version_minor = 1;
+	fsaa_samples = 4;
+	window_width = 720;
+	window_height = 480;
+
+	string file;
+	if (!read_file("./config.txt", file))
+	{
+		// File missing, write it
+		std::ofstream config("./config.txt");
+		config<<"gl_version_major: "<<gl_version_major<<std::endl;
+		config<<"gl_version_minor: "<<gl_version_minor<<std::endl;
+		config<<"fsaa_samples: "<<fsaa_samples<<std::endl;
+		config<<"window_width: "<<window_width<<std::endl;
+		config<<"window_height: "<<window_height<<std::endl;
+		config.close();
+	}
+	else
+	{
+		std::stringstream ss(file);
+		read_word(ss);
+		gl_version_major = read_int(ss);
+		read_word(ss);
+		gl_version_minor = read_int(ss);
+		read_word(ss);
+		fsaa_samples = read_int(ss);
+		read_word(ss);
+		window_width = read_int(ss);
+		read_word(ss);
+		window_height = read_int(ss);
+	}
 }
 
 int main(int argc, char **argv)
@@ -19,29 +57,48 @@ int main(int argc, char **argv)
     GLFWwindow* window;
     glfwSetErrorCallback(error_callback);
     if (!glfwInit())
+	{
+		log_msg("Failed to initialize GLFW");
+		dump_log();
         exit(EXIT_FAILURE);
+	}
 
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GL_PROFILE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, GL_VERSION_MAJOR);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GL_VERSION_MINOR);
-	glfwWindowHint(GLFW_SAMPLES, FSAA_SAMPLES);
+	int gl_version_major, gl_version_minor, fsaa_samples, window_width, window_height;
+	read_config(gl_version_major, gl_version_minor, fsaa_samples, window_width, window_height);
+
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, gl_version_major);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, gl_version_minor);
+	glfwWindowHint(GLFW_SAMPLES, fsaa_samples);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_DECORATED, GL_TRUE);
+	glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
 
-    window = glfwCreateWindow(640, 480, "Spherical Snake", NULL, NULL);
+    window = glfwCreateWindow(window_width, window_height, "Spherical Snake", NULL, NULL);
     if (!window)
     {
+		log_msg("Failed to create window");
+		dump_log();
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, on_key);
-	glfwSwapInterval(VSYNC);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	glfwSwapInterval(1);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+	// Show window centered
+	const GLFWvidmode *curr_vid_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+	int screen_width = curr_vid_mode->width;
+	int screen_height = curr_vid_mode->height;
+	glfwSetWindowPos(window, screen_width / 2 - window_width / 2, screen_height / 2 - window_height / 2);
+	glfwShowWindow(window);
 
 	if(LoadFunctions() == LS_LOAD_FAILED)
 	{
-        fputs("Failed to load OpenGL functions", stderr);
+		log_msg("Failed to load OpenGL functions");
+		dump_log();
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
@@ -50,8 +107,8 @@ int main(int argc, char **argv)
 	{
 		if(!load_game(window))
 		{
-			fputs("Failed to load content", stderr);
-			std::cin.get();
+			log_msg("Failed to load content");
+			dump_log();
 			glfwTerminate();
 			exit(EXIT_FAILURE);
 		}
@@ -90,24 +147,22 @@ int main(int argc, char **argv)
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 
-			double render_time = glfwGetTime() - now;
-			if (render_time < target_frame_time)
-				sleep(target_frame_time - render_time);
+			//double render_time = glfwGetTime() - now;
+			//if (render_time < target_frame_time)
+			//	sleep(target_frame_time - render_time);
 
-			if (check_gl_errors(std::cerr))
-			{
-				std::cin.get();
+			if (check_gl_errors(get_log_stream()))
 				glfwSetWindowShouldClose(window, GL_TRUE);
-			}
 		}
 	}
 	catch (std::exception &e)
 	{
-		std::cerr<<"An error occured: "<<e.what()<<std::endl;
-		std::cin.get();
+		log_msg("An unexpected error occured: ");
+		log_msg(e.what());
 	}
     
     glfwDestroyWindow(window);
     glfwTerminate();
+	dump_log();
     exit(EXIT_SUCCESS);
 }

@@ -129,11 +129,18 @@ vec2i measure_string(const Font &font, const string &text)
 	return vec2i(width, height);
 }
 
-void draw_string(const Font &font, Shader &shader, float x, float y, const vec4 &color, const string &text)
+void draw_string(const Font &font, Shader &shader, float x, float y, const vec4 &color, const string &text, bool centered)
 {
 	// Nothing to draw
 	if (text.size() == 0)
 		return;
+
+	if (centered)
+	{
+		vec2i size = measure_string(font, text);
+		x -= size.x / 2.0f;
+		y -= size.y / 2.0f;
+	}	
 
 	std::vector<float> v_buffer;
 	std::vector<uint32> i_buffer;
@@ -199,7 +206,7 @@ void draw_string(const Font &font, Shader &shader, float x, float y, const vec4 
 	glDeleteBuffers(1, &ibo);
 }
 
-void draw_string(const Font &font, Shader &shader, float x, float y, const string &text)
+void draw_string(const Font &font, Shader &shader, float x, float y, const string &text, bool centered)
 {
-	draw_string(font, shader, x, y, vec4(1.0f), text);
+	draw_string(font, shader, x, y, vec4(1.0f), text, centered);
 }
