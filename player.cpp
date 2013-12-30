@@ -2,6 +2,7 @@
 #include "cube.h"
 #include "transform.h"
 #include "noise.h"
+#include "audio.h"
 #include <iostream>
 
 struct PlayerPart
@@ -84,7 +85,6 @@ void free_player(GLFWwindow *window)
 	delete_mesh(mesh_body);
 }
 
-bool spawning = false;
 void handle_player_input(GLFWwindow *window, double dt)
 {
 	vec2 tan_vel(0.0f, 1.0f);
@@ -92,16 +92,6 @@ void handle_player_input(GLFWwindow *window, double dt)
 		tan_vel = glm::normalize(vec2(-3.0f * dt, 1.0f));
 	else if (glfwGetKey(window, GLFW_KEY_LEFT))
 		tan_vel = glm::normalize(vec2(+3.0f * dt, 1.0f));
-
-	if (glfwGetKey(window, GLFW_KEY_SPACE) && ! spawning)
-	{
-		spawning = true;
-		append_part();
-	}
-	else if (!glfwGetKey(window, GLFW_KEY_SPACE))
-	{
-		spawning = false;
-	}
 
 	vec3 n = level_get_normal(player.pos);
 	vec3 t = glm::normalize(player.vel);
@@ -117,27 +107,17 @@ vec3 rand_vec()
 	return glm::normalize(vec3(x, y, z));
 }
 
-void on_player_death()
+extern void on_player_death();
+extern void on_player_pickup();
+
+void player_die()
 {
 	player.dead = true;
 
 	// Give random velocities to parts
 	for (auto &part : player.parts)
 		part.vel = rand_vec() * 2.0f;
-}
 
-void on_player_collision()
-{
-	on_player_death();
-}
-
-void on_apple_collision()
-{
-	append_part();
-}
-
-void on_enemy_collision()
-{
 	on_player_death();
 }
 
@@ -172,7 +152,7 @@ void update_player(GLFWwindow *window, double dt)
 		p.pos = player.parts[i - 1].past_pos[0];
 
 		if (is_close(p.pos, player.pos, player.radius * 0.8f, player.radius * 0.8f))
-			on_player_collision();
+			player_die();
 	}
 
 	ObjectType type;
@@ -181,8 +161,8 @@ void update_player(GLFWwindow *window, double dt)
 	{
 		switch (type)
 		{
-		case ObjectType::APPLE: on_apple_collision(); break;
-		case ObjectType::ENEMY: on_enemy_collision(); break;
+		case ObjectType::APPLE: append_part(); on_player_pickup(); break;
+		case ObjectType::ENEMY: player_die(); break;
 		}
 		level_remove_object(id);
 	}

@@ -7,6 +7,7 @@
 #include "text.h"
 #include "cube.h"
 #include "transform.h"
+#include "audio.h"
 #include <iostream>
 
 const float		PLAYER_SPEED = 0.5f;
@@ -26,6 +27,10 @@ const vec4	BG_COLOR = to_rgb(0x2DB3CCFF);
 const vec4	TEXT_COLOR = to_rgb(0xFFFFFFFF);
 
 const float TEXT_SCALE = 3.0f;
+
+const std::string AUDIO_BGM = "./sound/bgm.wav";
+const std::string AUDIO_EXPLOSION = "./sound/explosion.wav";
+const std::string AUDIO_PICKUP = "./sound/pickup.wav";
 
 enum GameState { PLAY_STATE, MENU_STATE, GAME_OVER_STATE };
 GameState game_state = MENU_STATE;
@@ -54,13 +59,19 @@ double game_over_timer;
 
 bool load_game(GLFWwindow *window)
 {
-	if(!load_player(window) ||
+	if (!load_audio())
+		return false;
+
+	if (!load_player(window) ||
 		!load_level(window) ||
 		!shader_default.load("shaders/default.vs", "shaders/default.fs") ||
 		!shader_sprite.load("shaders/sprite.vs", "shaders/sprite.fs") ||
 		!shader_wireframe.load("shaders/wireframe.vs", "shaders/wireframe.fs") ||
 		!shader_background.load("shaders/background.vs", "shaders/background.fs") ||
-		!load_font(font, "textures/tinyfont.png"))
+		!load_font(font, "textures/tinyfont.png") ||
+		!load_sound(AUDIO_BGM) ||
+		!load_sound(AUDIO_EXPLOSION) ||
+		!load_sound(AUDIO_PICKUP))
 		return false;
 
 	final_score = 0;
@@ -105,6 +116,24 @@ void free_game(GLFWwindow *window)
 	shader_wireframe.dispose();
 	shader_background.dispose();
 	shader_sprite.dispose();
+	free_audio();
+}
+
+void on_player_death()
+{
+	final_score = player_get_length();
+	if (final_score > high_score)
+		high_score = final_score;
+
+	game_over_timer = 2.0;
+	game_state = GAME_OVER_STATE;
+	stop_all_sounds();
+	play_sound(AUDIO_EXPLOSION, false);
+}
+
+void on_player_pickup()
+{
+	play_sound(AUDIO_PICKUP, false);
 }
 
 void on_key(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -118,15 +147,6 @@ void update_play_state(GLFWwindow *window, double dt)
 	handle_player_input(window, dt);
 	update_player(window, dt);
 	update_level(window, dt);
-
-	if (player_is_dead())
-	{
-		final_score = player_get_length();
-		if (final_score > high_score)
-			high_score = final_score;
-		game_over_timer = 2.0;
-		game_state = GAME_OVER_STATE;
-	}
 
 	float time = float(glfwGetTime());
 	vec3 pos = player_get_world_pos();
@@ -144,7 +164,10 @@ void update_menu_state(GLFWwindow *window, double dt)
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT) ||
 		glfwGetKey(window, GLFW_KEY_RIGHT))
+	{
 		game_state = PLAY_STATE;
+		play_sound(AUDIO_BGM, true);
+	}
 }
 
 void update_game_over_state(GLFWwindow *window, double dt)
@@ -163,6 +186,7 @@ void update_game_over_state(GLFWwindow *window, double dt)
 			free_level(window);
 			init_game(window);
 			game_state = PLAY_STATE;
+			play_sound(AUDIO_BGM, true);
 		}
 	}
 	else
