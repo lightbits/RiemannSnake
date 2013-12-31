@@ -1,7 +1,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 #include "util.h"
-#include "level.h"
 
 bool load_player(GLFWwindow *window);
 void init_player(GLFWwindow *window,
@@ -18,6 +17,7 @@ void render_player(GLFWwindow *window, double dt);
 
 vec3 player_get_world_pos();
 vec3 player_get_world_vel();
+float player_get_radius();
 int player_get_length();
 bool player_is_dead();
 

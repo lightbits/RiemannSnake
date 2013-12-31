@@ -3,6 +3,7 @@
 #include "transform.h"
 #include "noise.h"
 #include "audio.h"
+#include "level.h"
 #include <iostream>
 
 struct PlayerPart
@@ -99,14 +100,6 @@ void handle_player_input(GLFWwindow *window, double dt)
 	player.vel = glm::normalize(tan_vel.x * b + tan_vel.y * t) * player.speed;
 }
 
-vec3 rand_vec()
-{
-	float x = frand() * 2.0f - 1.0f;
-	float y = frand() * 2.0f - 1.0f;
-	float z = frand() * 2.0f - 1.0f;
-	return glm::normalize(vec3(x, y, z));
-}
-
 extern void on_player_death();
 extern void on_player_pickup();
 
@@ -116,7 +109,7 @@ void player_die()
 
 	// Give random velocities to parts
 	for (auto &part : player.parts)
-		part.vel = rand_vec() * 2.0f;
+		part.vel = rand_vec3() * 2.0f;
 
 	on_player_death();
 }
@@ -197,4 +190,9 @@ int player_get_length()
 bool player_is_dead()
 {
 	return player.dead;
+}
+
+float player_get_radius()
+{
+	return player.radius;
 }

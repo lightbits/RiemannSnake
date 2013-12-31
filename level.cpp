@@ -2,6 +2,7 @@
 #include "cube.h"
 #include "transform.h"
 #include "noise.h"
+#include "player.h"
 #include <iostream>
 #include <unordered_map>
 
@@ -85,14 +86,16 @@ void update_level(GLFWwindow *window, double dt)
 	level.spawn_timer -= dt;
 	if (level.spawn_timer <= 0.0)
 	{
-		float x = frand() * 2.0f - 1.0f;
-		float y = frand() * 2.0f - 1.0f;
-		float z = frand() * 2.0f - 1.0f;
-		vec3 pos(x, y, z);
-		pos = glm::normalize(pos) * level_get_radius();
+		vec3 pos = rand_vec3() * level_get_radius();
 
-		if (frand() < 0.5f) spawn_object(ObjectType::ENEMY, pos);
-		else spawn_object(ObjectType::APPLE, pos);
+		// Object cannot spawn on top of the player
+		if (is_close(player_get_world_pos(), pos, player_get_radius(), level.object_radius * 0.8f))
+			pos *= -1.0f; // Spawn on other side
+
+		if (frand() < 0.5f) 
+			spawn_object(ObjectType::ENEMY, pos);
+		else 
+			spawn_object(ObjectType::APPLE, pos);
 		level.spawn_timer += level.spawn_interval;
 	}
 }

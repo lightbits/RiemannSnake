@@ -43,7 +43,7 @@ void play_sound(const string &filename, bool looped)
 	std::unordered_map<string, ISoundSource*>::iterator i = tracks.find(filename);
 	if (i != tracks.end())
 	{
-		engine->play2D(i->second);
+		engine->play2D(i->second, looped);
 	}
 	else
 	{

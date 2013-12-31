@@ -20,3 +20,13 @@ float frand()
 {
 	return xor128() / float(4294967295.0f);
 }
+
+// Returns a normalize 3-component vector, with
+// each component in the range [-1, 1]
+vec3 rand_vec3()
+{
+	float x = frand() * 2.0f - 1.0f;
+	float y = frand() * 2.0f - 1.0f;
+	float z = frand() * 2.0f - 1.0f;
+	return glm::normalize(vec3(x, y, z));
+}
