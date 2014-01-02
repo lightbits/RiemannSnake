@@ -90,9 +90,9 @@ void handle_player_input(GLFWwindow *window, double dt)
 {
 	vec2 tan_vel(0.0f, 1.0f);
 	if (glfwGetKey(window, GLFW_KEY_RIGHT))
-		tan_vel = glm::normalize(vec2(-3.0f * dt, 1.0f));
+		tan_vel = glm::normalize(vec2(-4.0f * dt, 1.0f));
 	else if (glfwGetKey(window, GLFW_KEY_LEFT))
-		tan_vel = glm::normalize(vec2(+3.0f * dt, 1.0f));
+		tan_vel = glm::normalize(vec2(+4.0f * dt, 1.0f));
 
 	vec3 n = level_get_normal(player.pos);
 	vec3 t = glm::normalize(player.vel);

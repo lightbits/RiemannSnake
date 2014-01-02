@@ -10,30 +10,34 @@
 #include "audio.h"
 #include <iostream>
 
-const float		PLAYER_SPEED = 0.5f;
+///////////////////
+// Game settings //
+///////////////////
+const float		PLAYER_SPEED = 0.7f;
 const float		PLAYER_RADIUS = 0.05f;
 const float		LEVEL_RADIUS = 0.7f;
 const float		OBJECT_RADIUS = 0.05f;
-const double	SPAWN_INTERVAL = 2.5;
+const double	SPAWN_INTERVAL = 2.0;
 const vec3		PLAYER_START_POS = vec3(0.0f, 0.0f, LEVEL_RADIUS);
 
-const vec4	PLAYER_HEAD_COLOR = to_rgb(0xFFFFFFFF);
-const vec4	PLAYER_BODY_COLOR = to_rgb(0xFFCCCCFF);
+const vec4		PLAYER_HEAD_COLOR = to_rgb(0xFFFFFFFF);
+const vec4		PLAYER_BODY_COLOR = to_rgb(0xFFCCCCFF);
+const vec4		LEVEL_EDGE_COLOR = to_rgb(0xFFF59FFF);
+const vec4		LEVEL_FILL_COLOR = to_rgb(0xFF529CFF);
+const vec4		BG_COLOR = to_rgb(0x2DB3CCFF);
+const vec4		TEXT_COLOR = to_rgb(0xFFFFFFFF);
 
-const vec4	LEVEL_EDGE_COLOR = to_rgb(0xFFF59FFF);
-const vec4	LEVEL_FILL_COLOR = to_rgb(0xFF529CFF);
+const float		TEXT_SCALE = 3.0f;
 
-const vec4	BG_COLOR = to_rgb(0x2DB3CCFF);
-const vec4	TEXT_COLOR = to_rgb(0xFFFFFFFF);
+///////////////
+// Resources //
+///////////////
+const string AUDIO_BGM = "./sound/bgm.wav";
+const string AUDIO_EXPLOSION = "./sound/explosion.wav";
+const string AUDIO_PICKUP = "./sound/pickup.wav";
 
-const float TEXT_SCALE = 3.0f;
-
-const std::string AUDIO_BGM = "./sound/bgm.wav";
-const std::string AUDIO_EXPLOSION = "./sound/explosion.wav";
-const std::string AUDIO_PICKUP = "./sound/pickup.wav";
-
-enum GameState { PLAY_STATE, MENU_STATE, GAME_OVER_STATE };
-GameState game_state = MENU_STATE;
+enum class GameState { PLAY_STATE, MENU_STATE, GAME_OVER_STATE };
+GameState game_state = GameState::MENU_STATE;
 
 Shader 
 	shader_default,
@@ -126,7 +130,7 @@ void on_player_death()
 		high_score = final_score;
 
 	game_over_timer = 2.0;
-	game_state = GAME_OVER_STATE;
+	game_state = GameState::GAME_OVER_STATE;
 	stop_all_sounds();
 	play_sound(AUDIO_EXPLOSION, false);
 }
@@ -165,7 +169,7 @@ void update_menu_state(GLFWwindow *window, double dt)
 	if (glfwGetKey(window, GLFW_KEY_LEFT) ||
 		glfwGetKey(window, GLFW_KEY_RIGHT))
 	{
-		game_state = PLAY_STATE;
+		game_state = GameState::PLAY_STATE;
 		play_sound(AUDIO_BGM, true);
 	}
 }
@@ -185,7 +189,7 @@ void update_game_over_state(GLFWwindow *window, double dt)
 			free_player(window);
 			free_level(window);
 			init_game(window);
-			game_state = PLAY_STATE;
+			game_state = GameState::PLAY_STATE;
 			play_sound(AUDIO_BGM, true);
 		}
 	}
@@ -347,9 +351,9 @@ void update_game(GLFWwindow *window, double dt)
 {
 	switch (game_state) 
 	{
-	case GAME_OVER_STATE: update_game_over_state(window, dt); break;
-	case PLAY_STATE: update_play_state(window, dt); break;
-	case MENU_STATE: update_menu_state(window, dt); break;
+	case GameState::GAME_OVER_STATE: update_game_over_state(window, dt); break;
+	case GameState::PLAY_STATE: update_play_state(window, dt); break;
+	case GameState::MENU_STATE: update_menu_state(window, dt); break;
 	}
 }
 
@@ -357,8 +361,8 @@ void render_game(GLFWwindow *window, double dt)
 {
 	switch (game_state) 
 	{
-	case GAME_OVER_STATE: render_game_over_state(window, dt); break;
-	case PLAY_STATE: render_play_state(window, dt); break;
-	case MENU_STATE: render_menu_state(window, dt); break;
+	case GameState::GAME_OVER_STATE: render_game_over_state(window, dt); break;
+	case GameState::PLAY_STATE: render_play_state(window, dt); break;
+	case GameState::MENU_STATE: render_menu_state(window, dt); break;
 	}
 }

@@ -3,11 +3,13 @@ Riemann Snake
 
 About
 ------------
-Riemann Snake is a simple 3D game written using C++ and GLFW.
+![Preview](https://raw.github.com/lightbits/riemannsnake/master/devlog/screenshot0.PNG)
+
+Riemann Snake is a simple 3D game written using C++ and OpenGL.
 Navigate the snake with the left and right arrow keys, and avoid the enemies.
 Move over green apples to grow longer and increase your score!
 
-The game is open source, with code available on [Github (TODO: add link)](). 
+The game is open source, with code available on [Github](https://github.com/lightbits/riemannsnake). 
 
 Dependencies
 ------------
@@ -19,8 +21,9 @@ This project uses the following libraries:
 *	irrKlang for audio
 *	lodepng for loading image files
 
-For details on building and linking these, see the associated pages at the GLSDK wiki for [building](http://glsdk.sourceforge.net/docs/html/pg_build.html) and
-[usage](http://glsdk.sourceforge.net/docs/html/pg_use.html).
+For details on building and linking these, see the associated pages at the GLSDK wiki for [building](http://glsdk.sourceforge.net/docs/html/pg_build.html) and [usage](http://glsdk.sourceforge.net/docs/html/pg_use.html).
+
+lodepng can be included as a header file, irrKlang is linked dynamically and requires the .dll to be available.
 
 Building for Windows
 ------------

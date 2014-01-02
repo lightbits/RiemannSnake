@@ -9,7 +9,7 @@ bool read_file(const std::string &path, std::string &dest)
 	std::ifstream in(path, std::ios::in | std::ios::binary);
 	if(!in.is_open())
 	{
-		std::cerr << "Error reading file: " << path << std::endl;
+		log_msg("Could not open file: " + path);
 		return false;
 	}
 
@@ -27,22 +27,22 @@ bool read_file(const std::string &path, std::string &dest)
 
 void log_msg(const std::string &msg)
 {
-#ifdef DEBUG
-	std::cerr << msg << std::endl;
-#endif
 	log_stream << msg << std::endl;
 }
 
 void dump_log()
 {
-#ifdef DEBUG
 	if (log_stream.str().size() > 0)
+	{
+#ifdef DEBUG
+		std::cerr << log_stream.str();
 		std::cin.get();
 #endif
-	std::ofstream file("./log.txt");
-	file<<log_stream.str();
-	file.close();
-	log_stream.clear();
+		std::ofstream file("./log.txt");
+		file<<log_stream.str();
+		file.close();
+		log_stream.clear();
+	}
 }
 
 std::stringstream &get_log_stream()

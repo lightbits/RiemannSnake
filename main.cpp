@@ -52,6 +52,12 @@ void read_config(int &gl_version_major,
 	}
 }
 
+void shutdown(int exit_code)
+{
+	dump_log();
+	exit(exit_code);
+}
+
 int main(int argc, char **argv)
 {
     GLFWwindow* window;
@@ -59,8 +65,7 @@ int main(int argc, char **argv)
     if (!glfwInit())
 	{
 		log_msg("Failed to initialize GLFW");
-		dump_log();
-        exit(EXIT_FAILURE);
+		shutdown(EXIT_FAILURE);
 	}
 
 	int gl_version_major, gl_version_minor, fsaa_samples, window_width, window_height;
@@ -78,9 +83,8 @@ int main(int argc, char **argv)
     if (!window)
     {
 		log_msg("Failed to create window");
-		dump_log();
         glfwTerminate();
-        exit(EXIT_FAILURE);
+		shutdown(EXIT_FAILURE);
     }
 
     glfwMakeContextCurrent(window);
@@ -98,9 +102,8 @@ int main(int argc, char **argv)
 	if(LoadFunctions() == LS_LOAD_FAILED)
 	{
 		log_msg("Failed to load OpenGL functions");
-		dump_log();
 		glfwTerminate();
-		exit(EXIT_FAILURE);
+		shutdown(EXIT_FAILURE);
 	}
 
 	try
@@ -108,9 +111,8 @@ int main(int argc, char **argv)
 		if(!load_game(window))
 		{
 			log_msg("Failed to load content");
-			dump_log();
 			glfwTerminate();
-			exit(EXIT_FAILURE);
+			shutdown(EXIT_FAILURE);
 		}
 
 		init_game(window);
@@ -163,6 +165,5 @@ int main(int argc, char **argv)
     
     glfwDestroyWindow(window);
     glfwTerminate();
-	dump_log();
-    exit(EXIT_SUCCESS);
+	shutdown(EXIT_SUCCESS);
 }
