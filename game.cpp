@@ -15,10 +15,11 @@
 ///////////////////
 const float		PLAYER_SPEED = 0.7f;
 const float		PLAYER_RADIUS = 0.05f;
-const float		LEVEL_RADIUS = 0.7f;
+const float		LEVEL_RADIUS = 0.6f;
 const float		OBJECT_RADIUS = 0.05f;
 const double	SPAWN_INTERVAL = 2.0;
 const vec3		PLAYER_START_POS = vec3(0.0f, 0.0f, LEVEL_RADIUS);
+const float		CAMERA_ZOOM = 1.35f;
 
 const vec4		PLAYER_HEAD_COLOR = to_rgb(0xFFFFFFFF);
 const vec4		PLAYER_BODY_COLOR = to_rgb(0xFFCCCCFF);
@@ -146,25 +147,25 @@ void on_key(GLFWwindow* window, int key, int scancode, int action, int mods)
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+void look_at_player()
+{
+	vec3 pos = player_get_world_pos();
+	vec3 n = level_get_normal(pos);
+	mat_view = glm::lookAt(pos + n * CAMERA_ZOOM, pos, player_get_world_vel());
+}
+
 void update_play_state(GLFWwindow *window, double dt)
 {
 	handle_player_input(window, dt);
 	update_player(window, dt);
 	update_level(window, dt);
-
-	float time = float(glfwGetTime());
-	vec3 pos = player_get_world_pos();
-	vec3 n = level_get_normal(pos);
-	mat_view = glm::lookAt(pos + n * 1.5f, pos, player_get_world_vel());
+	look_at_player();
 }
 
 void update_menu_state(GLFWwindow *window, double dt)
 {
 	update_player(window, dt);
-	float time = float(glfwGetTime());
-	vec3 pos = player_get_world_pos();
-	vec3 n = level_get_normal(pos);
-	mat_view = glm::lookAt(pos + n * 1.5f, pos, player_get_world_vel());
+	look_at_player();
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT) ||
 		glfwGetKey(window, GLFW_KEY_RIGHT))
@@ -177,9 +178,7 @@ void update_menu_state(GLFWwindow *window, double dt)
 void update_game_over_state(GLFWwindow *window, double dt)
 {
 	update_player_death(window, dt);
-	vec3 pos = player_get_world_pos();
-	vec3 n = level_get_normal(pos);
-	mat_view = glm::lookAt(pos + n * 1.5f, pos, player_get_world_vel());
+	look_at_player();
 
 	if (game_over_timer < 0.0)
 	{
