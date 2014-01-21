@@ -1,6 +1,7 @@
 #include "audio.h"
 #include "types.h"
 #include "fileio.h"
+#include "logging.h"
 #include <irrKlang.h>
 #include <unordered_map>
 using namespace irrklang;
@@ -13,7 +14,7 @@ bool load_audio()
 	engine = createIrrKlangDevice();
 	if(!engine)
 	{
-		log_msg("Failed to load audio device");
+		get_log() << "Failed to load audio device" << std::endl;
 		return false;
 	}
 
@@ -25,7 +26,7 @@ bool load_sound(const std::string &filename)
 	ISoundSource *src = engine->addSoundSourceFromFile(filename.c_str());
 	if (!src)
 	{
-		log_msg("Failed to load sound: " + filename);
+		get_log() << "Failed to load sound: " << filename << std::endl;
 		return false;
 	}
 	tracks[filename] = src;

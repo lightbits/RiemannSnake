@@ -2,13 +2,14 @@
 #include "game.h"
 #include "timer.h"
 #include "fileio.h"
+#include "logging.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 void error_callback(int error, const char* description)
 {
-	log_msg(description);
+	get_log() << description << std::endl;
 }
 
 void read_config(int &gl_version_major, 
@@ -54,7 +55,7 @@ void read_config(int &gl_version_major,
 
 void shutdown(int exit_code)
 {
-	dump_log();
+	dump_log_file("./log.txt");
 	exit(exit_code);
 }
 
@@ -64,7 +65,7 @@ int main(int argc, char **argv)
     glfwSetErrorCallback(error_callback);
     if (!glfwInit())
 	{
-		log_msg("Failed to initialize GLFW");
+		get_log() << "Failed to initialize GLFW" << std::endl;
 		shutdown(EXIT_FAILURE);
 	}
 
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
     window = glfwCreateWindow(window_width, window_height, "Spherical Snake", NULL, NULL);
     if (!window)
     {
-		log_msg("Failed to create window");
+		get_log() << "Failed to create window" << std::endl;
         glfwTerminate();
 		shutdown(EXIT_FAILURE);
     }
@@ -101,7 +102,7 @@ int main(int argc, char **argv)
 
 	if(LoadFunctions() == LS_LOAD_FAILED)
 	{
-		log_msg("Failed to load OpenGL functions");
+		get_log() << "Failed to load OpenGL functions" << std::endl;
 		glfwTerminate();
 		shutdown(EXIT_FAILURE);
 	}
@@ -110,7 +111,7 @@ int main(int argc, char **argv)
 	{
 		if(!load_game(window))
 		{
-			log_msg("Failed to load content");
+			get_log() << "Failed to load content" << std::endl;
 			glfwTerminate();
 			shutdown(EXIT_FAILURE);
 		}
@@ -153,14 +154,13 @@ int main(int argc, char **argv)
 			//if (render_time < target_frame_time)
 			//	sleep(target_frame_time - render_time);
 
-			if (check_gl_errors(get_log_stream()))
+			if (check_gl_errors())
 				glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 	}
 	catch (std::exception &e)
 	{
-		log_msg("An unexpected error occured: ");
-		log_msg(e.what());
+		get_log() << "An unhandled error occured: " << e.what() << std::endl;
 	}
     
     glfwDestroyWindow(window);

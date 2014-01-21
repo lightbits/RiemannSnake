@@ -17,8 +17,8 @@ Mesh generate_wireframe_sphere(float radius,
 	std::vector<float> vertex_buffer;
 	std::vector<uint32> index_buffer;
 
-	float dtheta = M_TWO_PI / float(t_samples);
-	float dphi = M_PI / float(s_samples);
+	float dtheta = TWO_PI / float(t_samples);
+	float dphi = PI / float(s_samples);
 	float rho = radius;
 	int vertex_count = 0;
 	for (int t = 0; t < t_samples; ++t)
@@ -66,8 +66,8 @@ Mesh generate_sphere(float radius,
 	std::vector<float> vertex_buffer;
 	std::vector<uint32> index_buffer;
 
-	float dtheta = M_TWO_PI / float(t_samples);
-	float dphi = M_PI / float(s_samples);
+	float dtheta = TWO_PI / float(t_samples);
+	float dphi = PI / float(s_samples);
 	float rho = radius;
 	int vertex_count = 0;
 	for (int t = 0; t < t_samples; ++t)

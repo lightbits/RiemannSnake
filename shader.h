@@ -15,8 +15,8 @@ public:
 	void use();
 	void unuse();
 
-	GLint Shader::get_uniform_location(const string &name);
-	GLint Shader::get_attribute_location(const string &name);
+	GLint get_uniform_location(const string &name);
+	GLint get_attribute_location(const string &name);
 
 	void set_attribfv(const string &name, GLsizei num_components, GLsizei stride, GLsizei offset);
 	void unset_attrib(const string &name);

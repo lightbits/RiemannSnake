@@ -1,4 +1,5 @@
 #include "shader.h"
+#include <stdexcept>
 #include <iostream>
 
 Shader *Shader::active_shader = nullptr;

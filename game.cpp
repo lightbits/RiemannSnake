@@ -46,6 +46,8 @@ Shader
 	shader_wireframe,
 	shader_background;
 
+GLuint vao;
+
 Font
 	font;
 
@@ -86,6 +88,9 @@ bool load_game(GLFWwindow *window)
 	mesh_quad = generate_quad();
 	mesh_inner_sphere = generate_sphere(LEVEL_RADIUS, 32, 32, LEVEL_FILL_COLOR);
 
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
 	return true;
 }
 
@@ -122,6 +127,9 @@ void free_game(GLFWwindow *window)
 	shader_background.dispose();
 	shader_sprite.dispose();
 	free_audio();
+
+	glBindVertexArray(0);
+	glDeleteVertexArrays(1, &vao);
 }
 
 void on_player_death()
@@ -247,7 +255,6 @@ void render_play_state(GLFWwindow *window, double dt)
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 
-	glEnable(GL_TEXTURE_2D);
 	float text_scale = 3.0f;
 	shader_sprite.use();
 	shader_sprite.set_uniform("projection", mat_orthographic);
@@ -258,7 +265,6 @@ void render_play_state(GLFWwindow *window, double dt)
 	text << "Score: " << player_get_length();
 	draw_string(font, shader_sprite, 5.0f, 5.0f, TEXT_COLOR, text.get_string());
 	shader_sprite.unuse();
-	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 }
 
@@ -271,7 +277,6 @@ void render_menu_state(GLFWwindow *window, double dt)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glEnable(GL_TEXTURE_2D);
 
 	shader_sprite.use();
 	shader_sprite.set_uniform("projection", mat_orthographic);
@@ -288,7 +293,6 @@ void render_menu_state(GLFWwindow *window, double dt)
 		text,
 		true);
 	shader_sprite.unuse();
-	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
 }
@@ -302,7 +306,6 @@ void render_game_over_state(GLFWwindow *window, double dt)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glEnable(GL_TEXTURE_2D);
 	shader_sprite.use();
 	shader_sprite.set_uniform("projection", mat_orthographic);
 	shader_sprite.set_uniform("view", scale(TEXT_SCALE));
@@ -341,7 +344,6 @@ void render_game_over_state(GLFWwindow *window, double dt)
 		true);
 
 	shader_sprite.unuse();
-	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
 }

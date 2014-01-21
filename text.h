@@ -6,14 +6,14 @@
 class Text
 {
 public:
-	Text()
+	Text() : stream()
 	{
-		stream = std::stringstream("");
+
 	}
 
 	Text &operator=(const std::string &str_)
 	{
-		stream = std::stringstream(str_);
+		stream.str(str_);
 		return *this;
 	}
 

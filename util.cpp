@@ -1,4 +1,5 @@
 #include "util.h"
+#include "logging.h"
 #include "fileio.h"
 #include <iostream>
 
@@ -25,8 +26,7 @@ bool make_shader(GLuint &shader, GLenum type, string source)
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
         GLchar *info = new GLchar[length];
         glGetShaderInfoLog(shader, length, NULL, info);
-		log_msg("Error compiling shader:");
-		log_msg(info);
+		get_log() << "Error compiling shader: " << info << std::endl;
         delete[] info;
 		return false;
     }
@@ -62,8 +62,7 @@ bool make_program(GLuint &program, GLuint vs_shader, GLuint fs_shader)
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
         GLchar *info = new GLchar[length];
         glGetProgramInfoLog(program, length, NULL, info);
-		log_msg("Error linking program:");
-		log_msg(info);
+		get_log() << "Error linking program: " << info << std::endl;
         delete[] info;
 		return false;
     }
@@ -107,13 +106,13 @@ const char *get_gl_error_msg(GLenum code)
 	}
 }
 
-bool check_gl_errors(std::ostream &out)
+bool check_gl_errors()
 {
 	bool were_errors = false;
 	GLenum error = glGetError();
 	while(error != GL_NO_ERROR)
 	{
-		out << "An OpenGL error occured: " << get_gl_error_msg(error) << std::endl;
+		get_log() << "An OpenGL error occurred: " << get_gl_error_msg(error) << std::endl;
 		were_errors = true;
 		error = glGetError();
 	}
@@ -123,7 +122,7 @@ bool check_gl_errors(std::ostream &out)
 vec2i get_window_size(GLFWwindow *window)
 {
 	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
+	glfwGetWindowSize(window, &width, &height);
 	return vec2i(width, height);
 }
 
