@@ -61,9 +61,9 @@ void shutdown(int exit_code)
 
 int main(int argc, char **argv)
 {
-    GLFWwindow* window;
-    glfwSetErrorCallback(error_callback);
-    if (!glfwInit())
+	GLFWwindow* window;
+	glfwSetErrorCallback(error_callback);
+	if (!glfwInit())
 	{
 		get_log() << "Failed to initialize GLFW" << std::endl;
 		shutdown(EXIT_FAILURE);
@@ -80,16 +80,16 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_DECORATED, GL_TRUE);
 	glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
 
-    window = glfwCreateWindow(window_width, window_height, "Spherical Snake", NULL, NULL);
-    if (!window)
-    {
+	window = glfwCreateWindow(window_width, window_height, "Spherical Snake", NULL, NULL);
+	if (!window)
+	{
 		get_log() << "Failed to create window" << std::endl;
-        glfwTerminate();
+		glfwTerminate();
 		shutdown(EXIT_FAILURE);
-    }
+	}
 
-    glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, on_key);
+	glfwMakeContextCurrent(window);
+	glfwSetKeyCallback(window, on_key);
 	glfwSwapInterval(1);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
@@ -162,8 +162,8 @@ int main(int argc, char **argv)
 	{
 		get_log() << "An unhandled error occured: " << e.what() << std::endl;
 	}
-    
-    glfwDestroyWindow(window);
-    glfwTerminate();
+	
+	glfwDestroyWindow(window);
+	glfwTerminate();
 	shutdown(EXIT_SUCCESS);
 }
