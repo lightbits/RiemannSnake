@@ -3,7 +3,7 @@ Riemann Snake
 
 About
 ------------
-![Preview](https://raw.github.com/lightbits/riemannsnake/master/devlog/screenshot0.PNG)
+![Preview](https://raw.github.com/lightbits/riemannsnake/master/devlog/screenshot0.png)
 
 Riemann Snake is a simple 3D game written using C++ and OpenGL.
 Navigate the snake with the left and right arrow keys, and avoid the enemies.

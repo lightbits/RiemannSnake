@@ -150,9 +150,9 @@ int main(int argc, char **argv)
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 
-			//double render_time = glfwGetTime() - now;
-			//if (render_time < target_frame_time)
-			//	sleep(target_frame_time - render_time);
+			double render_time = glfwGetTime() - now;
+			if (render_time < target_frame_time)
+				sleep(target_frame_time - render_time);
 
 			if (check_gl_errors())
 				glfwSetWindowShouldClose(window, GL_TRUE);
